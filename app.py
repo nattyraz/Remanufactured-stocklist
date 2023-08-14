@@ -2,12 +2,18 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# Global variables to store combined data and last update date
-combined_data = None
-last_update_date = None
+# Use caching to store and retrieve the combined data
+@st.cache(allow_output_mutation=True)
+def get_combined_data():
+    return []
+
+@st.cache(allow_output_mutation=True)
+def get_last_update_date():
+    return None
 
 def display_data_page():
-    global last_update_date
+    combined_data = get_combined_data()
+    last_update_date = get_last_update_date()
     
     st.title("Affichage des données")
     
@@ -16,7 +22,7 @@ def display_data_page():
         st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Display data
-    if combined_data is not None:
+    if combined_data:
         # List of currency columns
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
         
@@ -29,7 +35,7 @@ def display_data_page():
         st.write(combined_data[columns_to_display])
 
 def admin_page():
-    global combined_data, last_update_date
+    combined_data = get_combined_data()
     
     st.title("Administration")
     
@@ -48,6 +54,16 @@ def admin_page():
         # Update last update date
         last_update_date = datetime.now()
         st.success("Les données ont été mises à jour avec succès!")
+        
+        # Preview the combined data
+        st.write("Prévisualisation des données combinées :")
+        st.write(combined_data)
+
+        # Store the updated data and date using caching
+        get_combined_data().clear()
+        get_combined_data().append(combined_data)
+        get_last_update_date().clear()
+        get_last_update_date().append(last_update_date)
 
 def main():
     st.sidebar.title("Navigation")
