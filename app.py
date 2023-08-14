@@ -15,7 +15,7 @@ def display_data_page():
     combined_data = get_combined_data()["data"]
     last_update_date = get_last_update_date()["date"]
     
-    st.title("Updated Remanufactured stocklist // PC & Notebook Lenovo Garantie Original")
+    st.title("Remanufactured stocklist// PC & Notebook Lenovo Garantie Original")
     
     # Show last update date
     if last_update_date:
