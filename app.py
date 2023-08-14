@@ -8,7 +8,7 @@ LOGO_PATH = "logo foxway.png"
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon=LOGO_PATH,
+    page_icon=favicon.ico,
     layout="wide"
 )
 
