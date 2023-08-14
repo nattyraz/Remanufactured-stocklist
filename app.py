@@ -3,8 +3,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-LOGO_PATH = "logo foxway.png"
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
@@ -26,7 +24,7 @@ def display_data_page():
     with col1:
         st.image(LOGO_PATH, width=50)
     with col2:
-        st.title("Affichage des données")
+        st.title("Remanufactured stocklist Lenovo Garantie Original")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
