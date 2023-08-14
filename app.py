@@ -22,7 +22,7 @@ def get_last_update_date():
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/cb8877da409079ef4a0a6399206ef5289841ed39/logo%20foxway.png", width=100)
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/cb8877da409079ef4a0a6399206ef5289841ed39/logo%20foxway.png")
     with col2:
         st.title("Remanufactured stocklist Lenovo Garantie Original")
     
