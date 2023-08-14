@@ -39,7 +39,7 @@ def display_data_page():
         # Display data with selected currency column, without the default index column
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
-        st.write(filtered_data[columns_to_display])
+        st.write(filtered_data[columns_to_display].reset_index(drop=True))
 
 def admin_page():
     st.title("Administration")
@@ -79,4 +79,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
