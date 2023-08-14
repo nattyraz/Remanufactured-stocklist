@@ -5,7 +5,7 @@ from datetime import datetime
 # Use caching to store and retrieve the combined data
 @st.cache(allow_output_mutation=True)
 def get_combined_data():
-    return []
+    return None
 
 @st.cache(allow_output_mutation=True)
 def get_last_update_date():
@@ -22,7 +22,7 @@ def display_data_page():
         st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Display data
-    if combined_data:
+    if combined_data is not None:
         # List of currency columns
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
         
@@ -35,8 +35,6 @@ def display_data_page():
         st.write(combined_data[columns_to_display])
 
 def admin_page():
-    combined_data = get_combined_data()
-    
     st.title("Administration")
     
     # Upload files
@@ -60,10 +58,13 @@ def admin_page():
         st.write(combined_data)
 
         # Store the updated data and date using caching
-        get_combined_data().clear()
-        get_combined_data().append(combined_data)
-        get_last_update_date().clear()
-        get_last_update_date().append(last_update_date)
+        get_combined_data.cache_clear()
+        get_combined_data.cache_on_next_run = False
+        get_last_update_date.cache_clear()
+        get_last_update_date.cache_on_next_run = False
+        
+        get_combined_data(combined_data)
+        get_last_update_date(last_update_date)
 
 def main():
     st.sidebar.title("Navigation")
