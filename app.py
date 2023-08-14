@@ -2,6 +2,22 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
+def set_page_style():
+    st.markdown("""
+    <style>
+    body {
+        background-color: #420171;
+        color: white;
+    }
+    .sidebar .sidebar-content {
+        background-color: #420171;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Call the function to apply the styles
+set_page_style()
+
 # Use caching to store and retrieve the combined data
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
