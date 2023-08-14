@@ -9,7 +9,7 @@ LOGO_PATH = "logo foxway.png"
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon="https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png",
+    page_icon="favicon.ico",
     layout="wide"
 )
 
