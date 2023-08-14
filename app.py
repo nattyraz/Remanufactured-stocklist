@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-BANNER_URL = "https://raw.githubusercontent.com/nattyraz/Remanufactured-stocklist/main/Picture1.png"
+BANNER_URL = "favicon.ico"
 LOGO_PATH = "logo foxway.png"
 
 # Set page configuration
