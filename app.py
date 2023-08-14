@@ -20,8 +20,8 @@ def get_last_update_date():
     return {'date': None}
 
 def display_data_page():
-    col2 = st.columns([1, 6])
-    with col2:
+    col1 = st.columns([1, 6])
+    with col1:
         st.title("Remanufactured stocklist Lenovo Garantie Original")
     
     combined_data = get_combined_data()['data']
