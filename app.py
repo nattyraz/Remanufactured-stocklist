@@ -2,21 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-def set_page_style():
-    st.markdown("""
-    <style>
-    body {
-        background-color: #420171;
-        color: white;
-    }
-    .sidebar .sidebar-content {
-        background-color: #420171;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# Call the function to apply the styles
-set_page_style()
+BANNER_PATH = "/Picture1.png"
 
 # Use caching to store and retrieve the combined data
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
@@ -28,10 +14,12 @@ def get_last_update_date():
     return {"date": None}
 
 def display_data_page():
+    st.image(BANNER_PATH, use_column_width=True)
+    
     combined_data = get_combined_data()["data"]
     last_update_date = get_last_update_date()["date"]
     
-    st.title("Remanufactured stocklist// PC & Notebook Lenovo Garantie Original")
+    st.title("Affichage des données")
     
     # Show last update date
     if last_update_date:
@@ -58,6 +46,8 @@ def display_data_page():
         st.write(filtered_data[columns_to_display].reset_index(drop=True))
 
 def admin_page():
+    st.image(BANNER_PATH, use_column_width=True)
+    
     st.title("Administration")
     
     # Upload files
