@@ -29,10 +29,17 @@ def display_data_page():
         # Allow user to select a currency
         selected_currency = st.selectbox("Sélectionnez une devise:", currency_columns)
         
-        # Display data with selected currency column
-        columns_to_display = [col for col in combined_data.columns if col not in currency_columns]
+        # Filter rows with no price or zero price for the selected currency
+        filtered_data = combined_data[combined_data[selected_currency].notna() & (combined_data[selected_currency] != 0)]
+        
+        # Remove unwanted columns
+        columns_to_remove = ["kunde land", "brand"]
+        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
+        
+        # Display data with selected currency column, without the default index column
+        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
-        st.write(combined_data[columns_to_display])
+        st.write(filtered_data[columns_to_display])
 
 def admin_page():
     st.title("Administration")
@@ -72,3 +79,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
