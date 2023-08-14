@@ -1,0 +1,9 @@
+[theme]
+base = "dark"
+backgroundColor = "#420171"
+secondaryBackgroundColor = "#310452"
+
+# Optionally, you can also define other theme settings like:
+# primaryColor = "#E694FF"
+# textColor = "#DCDCDC"
+# font = "sans-serif"
