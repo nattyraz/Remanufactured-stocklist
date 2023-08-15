@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -20,9 +19,9 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
-def filter_data_by_search_query(df, query):
-    # Create a regex pattern from the query, escaping special characters
-    pattern = re.compile(re.escape(query), re.IGNORECASE)  # re.IGNORECASE makes the search case-insensitive
+def advanced_filter_data_by_search_query(df, query):
+    # Transform the user's query to a more flexible regex pattern
+    pattern = re.compile(re.escape(query).replace(r'\*', '.*').replace(r'\?', '.'), re.IGNORECASE)
     
     # Filter data using the regex pattern
     return df[df['Description'].str.contains(pattern) | df['No.'].astype(str).str.contains(pattern)]
@@ -46,7 +45,7 @@ def display_data_page():
     
     # Filter data based on search query
     if search_query:
-        combined_data = filter_data_by_search_query(combined_data, search_query)
+        combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
         # Display filters for user selection in horizontal layout
@@ -123,3 +122,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
