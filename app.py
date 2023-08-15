@@ -93,14 +93,16 @@ def admin_page():
     # Upload files
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
     file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
+    file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
+    file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
     
-    # Combine files and update data
-    if file1 and file2:
-        df1 = pd.read_excel(file1)
-        df2 = pd.read_excel(file2)
+    files = [file for file in [file1, file2, file3, file4] if file]  # List of uploaded files
+    
+    if files:
+        dataframes = [pd.read_excel(file) for file in files]  # Convert files to DataFrames
         
         # Combine the files
-        combined_data = pd.concat([df1, df2])
+        combined_data = pd.concat(dataframes)
         
         # Update last update date
         last_update_date = datetime.now()
@@ -113,6 +115,7 @@ def admin_page():
         # Store the updated data and date using caching
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
+
 
 def main():
     st.sidebar.title("Navigation")
