@@ -21,8 +21,9 @@ def get_last_update_date():
 
 def advanced_filter_data_by_search_query(df, query):
     # Transform the user's query to a more flexible regex pattern
+    query = re.sub(r'\s+', '.*', query)  # Replace spaces with .*
     pattern = re.compile(re.escape(query).replace(r'\*', '.*').replace(r'\?', '.'), re.IGNORECASE)
-    
+
     # Filter data using the regex pattern
     return df[df['Description'].str.contains(pattern) | df['No.'].astype(str).str.contains(pattern)]
 
