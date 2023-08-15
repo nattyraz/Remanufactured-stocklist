@@ -1,8 +1,6 @@
-
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-import re  # For regular expression matching
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Set page configuration
@@ -21,114 +19,58 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
-def advanced_filter_data_by_search_query(df, query):
-    # Transform the user's query to a more flexible regex pattern
-    query = query.replace(" ", ".*")  # Replace spaces with .*
-    query = query.replace("*", ".*")  # Replace * with .*
-    pattern = re.compile(query, re.IGNORECASE)
-
-    # Filter data using the regex pattern
-    return df[df['Description'].str.contains(pattern) | df['No.'].astype(str).str.contains(pattern)]
-    
 def display_pie_chart(data, column_name):
-    data_to_plot = data[column_name].value_counts()
-    fig, ax = plt.subplots()
-    ax.pie(data_to_plot, labels=data_to_plot.index, startangle=90, autopct='%1.1f%%')
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    st.pyplot(fig)
+    column_name_translations = {
+        "Produits catégories": "Item Category Code",
+        "Format": "Product Group Code"
+    }
+    internal_column_name = column_name_translations.get(column_name, column_name)
+    
+    if internal_column_name in data.columns:
+        data_to_plot = data[internal_column_name].value_counts()
+        fig, ax = plt.subplots()
+        ax.pie(data_to_plot, labels=data_to_plot.index, startangle=90, counterclock=False, autopct='%1.1f%%')
+        ax.set_title(f"Distribution of {column_name}")
+        st.pyplot(fig)
+    else:
+        st.error(f"Column {column_name} not found in the data!")
 
 def display_data_page():
-    col1, col2 = st.columns([1, 6])
-    with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
-    with col2:
-        st.title("Remanufactured stocklist Lenovo Garantie Original")
-    
     combined_data = get_combined_data()['data']
-    last_update_date = get_last_update_date()['date']
     
-    # Show last update date
-    if last_update_date:
-        st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Search input
-    search_query = st.text_input("Recherche par description ou No. (utilisez le * dans vos recherches):")
-    
-
-    # Filter data based on search query
-    if search_query:
-        combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
-
-    # Display Pie Charts
-    for column in ["Format", "Produits catégories", "Keyboard Language", "Condition"]:
+    # Show pie chart if data is available
+    if combined_data is not None:
+        columns_for_pie_chart = ["Format", "Produits catégories", "Software Language", "Keyboard Language", 
+                                 "Graphics01", "Graphics02", "Condition", "Warranty"]
+        column = st.selectbox("Select a column to display pie chart:", columns_for_pie_chart)
         display_pie_chart(combined_data, column)
-        
-    if combined_data is not None and not combined_data.empty:
-        # Display filters for user selection in horizontal layout
-        col_item_cat, col_prod_group, col_keyboard, col_condition = st.columns(4)
-        filters = {
-            "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Produits catégories"].unique())),
-            "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Format"].unique())),
-            "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
-        }
-        
-        # Filter data based on user selections
-        for column, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
-        
-        # List of currency columns
-        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        
-        # Allow user to select a currency
-        selected_currency = st.selectbox("Sélectionnez une devise:", currency_columns)
-        
-        # Filter rows with no price or zero price for the selected currency and "Avail. Qty" greater than 0
-        filtered_data = combined_data[
-            (combined_data[selected_currency].notna()) & 
-            (combined_data[selected_currency] != 0) &
-            (combined_data["Avail. Qty"] > 0)
-        ]
-        
-        # Remove unwanted columns
-        columns_to_remove = ["kunde land", "brand"]
-        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
-        
-        # Display data with selected currency column, without the default index column
-        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
-        columns_to_display.append(selected_currency)
-        st.write(filtered_data[columns_to_display].reset_index(drop=True))
 
 def admin_page():
     st.title("Administration")
     
     # Upload files
-    uploaded_files = st.file_uploader("Importez les fichiers:", type=["xlsx"], accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload your Excel files (.xlsx)", type="xlsx", accept_multiple_files=True)
     
     if uploaded_files:
-        dataframes = [pd.read_excel(file) for file in uploaded_files]
-        
-        # Combine the files
-        combined_data = pd.concat(dataframes, ignore_index=True)
+        dfs = [pd.read_excel(file) for file in uploaded_files]
+        combined_data = pd.concat(dfs, ignore_index=True)
         
         # Update last update date
-        last_update_date = datetime.now()
-        st.success("Les données ont été mises à jour avec succès!")
+        get_last_update_date()['date'] = datetime.now()
+        st.success("Data has been successfully loaded!")
         
         # Preview the combined data
-        st.write("Prévisualisation des données combinées :")
+        st.write("Data Preview:")
         st.write(combined_data)
 
-        # Store the updated data and date using caching
+        # Store the updated data using caching
         get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
+    page = st.sidebar.radio("Choose a page:", ["Data Visualization", "Administration"])
     
-    if page == "Affichage des données":
+    if page == "Data Visualization":
         display_data_page()
     else:
         admin_page()
