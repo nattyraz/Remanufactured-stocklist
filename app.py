@@ -43,9 +43,9 @@ def display_data_page():
         st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Search input
-search_query = st.text_input("Recherche par description ou No. (utilisez le * dans vos recherches):")
-
+    search_query = st.text_input("Recherche par description ou No. (utilisez le * dans vos recherches):")
     
+
     # Filter data based on search query
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
