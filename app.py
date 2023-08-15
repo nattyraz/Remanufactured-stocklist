@@ -21,12 +21,13 @@ def get_last_update_date():
 
 def advanced_filter_data_by_search_query(df, query):
     # Transform the user's query to a more flexible regex pattern
-    query = re.sub(r'\s+', '.*', query)  # Replace spaces with .*
-    pattern = re.compile(re.escape(query).replace(r'\*', '.*').replace(r'\?', '.'), re.IGNORECASE)
+    query = query.replace(" ", ".*")  # Replace spaces with .*
+    query = query.replace("*", ".*")  # Replace * with .*
+    pattern = re.compile(query, re.IGNORECASE)
 
     # Filter data using the regex pattern
     return df[df['Description'].str.contains(pattern) | df['No.'].astype(str).str.contains(pattern)]
-
+    
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
