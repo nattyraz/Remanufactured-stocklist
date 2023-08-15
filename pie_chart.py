@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+from datetime import datetime
 import matplotlib.pyplot as plt
 
 # Set page configuration
@@ -20,28 +20,35 @@ def get_last_update_date():
     return {'date': None}
 
 def display_pie_chart(data, column_name):
-    column_name_translations = {
-        "Produits catégories": "Item Category Code",
-        "Format": "Product Group Code"
-    }
-    internal_column_name = column_name_translations.get(column_name, column_name)
-    
-    if internal_column_name in data.columns:
-        data_to_plot = data[internal_column_name].value_counts()
-        fig, ax = plt.subplots()
-        ax.pie(data_to_plot, labels=data_to_plot.index, startangle=90, counterclock=False, autopct='%1.1f%%')
-        ax.set_title(f"Distribution of {column_name}")
-        st.pyplot(fig)
-    else:
-        st.error(f"Column {column_name} not found in the data!")
+    # Display pie chart with 300x300 size
+    fig, ax = plt.subplots(figsize=(3, 3))
+    data_to_plot = data[column_name].value_counts()
+    ax.pie(data_to_plot, labels=data_to_plot.index, startangle=90, counterclock=False, autopct='%1.1f%%')
+    ax.set_title(f"Distribution of {column_name}")
+    st.pyplot(fig)
 
 def display_data_page():
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
+    with col2:
+        st.title("Remanufactured stocklist Lenovo Garantie Original")
+    
     combined_data = get_combined_data()['data']
+    last_update_date = get_last_update_date()['date']
+    
+    # Show last update date
+    if last_update_date:
+        st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Show data in a table
+    if combined_data is not None and not combined_data.empty:
+        st.write(combined_data)
     
     # Show pie chart if data is available
     if combined_data is not None:
-        columns_for_pie_chart = ["Format", "Produits catégories", "Software Language", "Keyboard Language", 
-                                 "Graphics01", "Graphics02", "Condition", "Warranty"]
+        st.write("## Distribution Chart")
+        columns_for_pie_chart = ["Product Group Code", "Keyboard Language", "Condition", "Avail. Qty"]
         column = st.selectbox("Select a column to display pie chart:", columns_for_pie_chart)
         display_pie_chart(combined_data, column)
 
