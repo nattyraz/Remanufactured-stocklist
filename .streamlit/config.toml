@@ -5,3 +5,5 @@ backgroundColor = "#420171"
 secondaryBackgroundColor = "#310452"
 textColor = "#DCDCDC"
 font = "sans-serif"
+[deprecation]
+showfileUploaderEncoding = false
