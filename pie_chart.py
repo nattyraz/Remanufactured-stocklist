@@ -42,7 +42,7 @@ def display_data_page():
     
     # Show last update date
     if last_update_date:
-        st.write(f"Dernière mise à jour: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
+        st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Search input
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
@@ -71,7 +71,7 @@ def display_data_page():
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
         
         # Allow user to select a currency
-        selected_currency = st.selectbox("Sélectionnez une devise:", currency_columns)
+        selected_currency = st.selectbox("Select a currency:", currency_columns)
         
         # Filter rows with no price or zero price for the selected currency and "Avail. Qty" greater than 0
         filtered_data = combined_data[
@@ -109,7 +109,7 @@ def admin_page():
         
         # Update last update date
         last_update_date = datetime.now()
-        st.success("Les données ont été mises à jour avec succès!")
+        st.success("The data has been updated successfully!")
         
         # Preview the combined data
         st.write("Prévisualisation des données combinées :")
