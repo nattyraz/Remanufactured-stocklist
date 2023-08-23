@@ -87,7 +87,7 @@ def display_data_page():
         # Display data with selected currency column, without the default index column
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
-        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.4f}".format(x)})
+        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
 
 def admin_page():
