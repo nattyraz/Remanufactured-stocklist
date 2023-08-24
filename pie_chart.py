@@ -88,7 +88,20 @@ def display_data_page():
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-        st.dataframe(filtered_data[columns_to_display].head(26))
+        
+# Assuming combined_data is your dataframe
+
+# 1. Add a multiselect box for users to select references from "No." column
+selected_references = st.multiselect('Select references from "No." column:', combined_data['No.'].unique())
+
+# 2. Add a button to initiate download
+if st.button('Download selected references'):
+    # 3. Generate a file with selected references and provide a link for download
+    with open('selected_references.txt', 'w') as f:
+        for ref in selected_references:
+            f.write(f"{ref}\n")
+    st.download_button(label="Download", data=f, file_name='selected_references.txt', mime='text/plain')
+st.dataframe(s)
 
 def admin_page():
     st.title("Administration")
@@ -128,6 +141,9 @@ def main():
         display_data_page()
     else:
         admin_page()
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
