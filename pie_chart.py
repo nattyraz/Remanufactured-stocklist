@@ -1,3 +1,6 @@
+D'accord, je vais reprendre tout le code et supprimer la colonne "Kunde Land" de l'affichage. Voici le code modifié :
+
+```python
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -11,15 +14,13 @@ st.set_page_config(
 )
 
 # Use caching to store and retrieve the combined data
-@st.cache_data()
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
 
-@st.cache_data()
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_last_update_date():
     return {'date': None}
-
-
 
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
@@ -81,7 +82,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["kunde land", "brand"]
+        columns_to_remove = ["Kunde Land", "brand"]  # Changed "kunde land" to "Kunde Land"
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         # Display data with selected currency column, without the default index column
