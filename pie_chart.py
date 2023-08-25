@@ -1,6 +1,3 @@
-D'accord, je vais reprendre tout le code et supprimer la colonne "Kunde Land" de l'affichage. Voici le code modifié :
-
-```python
 import streamlit as st
 import pandas as pd
 from datetime import datetime
