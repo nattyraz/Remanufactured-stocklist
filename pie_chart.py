@@ -10,7 +10,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Use caching to store and retrieve the combined data
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
@@ -22,8 +21,8 @@ def get_last_update_date():
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
-        if sub_query:  # Check if the sub-query is not empty
-            sub_query = sub_query.replace("*", ".*")  # Convert * to .* for regex
+        if sub_query:
+            sub_query = sub_query.replace("*", ".*")
             pattern = re.compile(sub_query, re.IGNORECASE)
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
@@ -38,20 +37,15 @@ def display_data_page():
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
     
-    # Show last update date
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
     
-    # Search input
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
     
-
-    # Filter data based on search query
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        # Display filters for user selection in horizontal layout
         col_item_cat, col_prod_group, col_keyboard, col_condition = st.columns(4)
         filters = {
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
@@ -60,18 +54,13 @@ def display_data_page():
             "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
         }
         
-        # Filter data based on user selections
         for column, selected_values in filters.items():
             if selected_values:
                 combined_data = combined_data[combined_data[column].isin(selected_values)]
         
-        # List of currency columns
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        
-        # Allow user to select a currency
         selected_currency = st.selectbox("Select a currency:", currency_columns)
         
-        # Filter rows with no price or zero price for the selected currency and "Avail. Qty" greater than 0
         filtered_data = combined_data[
             (combined_data[selected_currency].notna()) & 
             (combined_data[selected_currency] != 0) &
@@ -79,10 +68,9 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde Land", "brand"]  # Changed "kunde land" to "Kunde Land"
+        columns_to_remove = ["Kunde land"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
-        # Display data with selected currency column, without the default index column
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
@@ -90,33 +78,22 @@ def display_data_page():
 
 def admin_page():
     st.title("Administration")
-    
-    # Upload files
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
     file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
     file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
     file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
     
-    files = [file for file in [file1, file2, file3, file4] if file]  # List of uploaded files
+    files = [file for file in [file1, file2, file3, file4] if file]
     
     if files:
-        dataframes = [pd.read_excel(file) for file in files]  # Convert files to DataFrames
-        
-        # Combine the files
+        dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
-        
-        # Update last update date
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
-        
-        # Preview the combined data
         st.write("Prévisualisation des données combinées :")
         st.write(combined_data)
-
-        # Store the updated data and date using caching
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
-
 
 def main():
     st.sidebar.title("Navigation")
@@ -129,4 +106,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
