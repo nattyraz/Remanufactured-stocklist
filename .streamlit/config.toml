@@ -7,3 +7,7 @@ textColor = "#DCDCDC"
 font = "sans-serif"
 [deprecation]
 showfileUploaderEncoding = false
+[admin]
+username = "admin"
+password = "password"
+
