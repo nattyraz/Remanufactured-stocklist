@@ -37,6 +37,11 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
+# Fonction manquante is_user_online()
+def is_user_online():
+    global user_online_timestamp
+    return (datetime.now() - user_online_timestamp).seconds < 300
+
 def display_data_page():
     global user_online_timestamp, user_email
     user_online_timestamp = datetime.now()
@@ -54,14 +59,13 @@ def display_data_page():
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Déclarations de débogage
     if combined_data is None:
         st.warning("Le DataFrame 'combined_data' est None.")
     elif combined_data.empty:
         st.warning("Le DataFrame 'combined_data' est vide.")
     else:
         st.success("Le DataFrame 'combined_data' est chargé avec succès.")
-
+        
         search_query = st.text_input("Search by description or No. (use the * in your searches):")
         if search_query:
             combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
@@ -72,16 +76,12 @@ def display_data_page():
     if email_input:
         user_email = email_input
         st.success("E-mail enregistré avec succès!")
-def is_user_online():
-    global user_online_timestamp
-    return (datetime.now() - user_online_timestamp).seconds < 300
 
 def admin_page():
     global user_email
 
     st.title("Administration")
     
-    # Authentification pour l'accès à la page d'administration
     if "logged_in" not in st.session_state or not st.session_state.logged_in:
         entered_login = st.text_input("Login:")
         entered_password = st.text_input("Password:", type="password")
@@ -93,13 +93,6 @@ def admin_page():
             else:
                 st.error("Login ou mot de passe incorrect!")
         return
-
-    # Affichage du nombre d'utilisateurs
-    st.write(f"Nombre d'utilisateurs actuellement en ligne : {get_user_count()['count']}")
-
-    # Importation des fichiers (accessible seulement par l'admin)
-    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-    # ... [Reste du code pour les autres importations et la gestion des données]
 
     if is_user_online():
         st.warning("Un utilisateur est actuellement en ligne!")
