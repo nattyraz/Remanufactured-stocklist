@@ -65,9 +65,10 @@ def display_data_page():
 def admin_page():
     global user_email
 
+    st.title("Administration")
+    
     # Authentification pour l'accès à la page d'administration
     if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        st.title("Authentification")
         entered_login = st.text_input("Login:")
         entered_password = st.text_input("Password:", type="password")
         if st.button("Se connecter"):
@@ -77,10 +78,8 @@ def admin_page():
                 st.experimental_rerun()
             else:
                 st.error("Login ou mot de passe incorrect!")
-                return
+        return
 
-    st.title("Administration")
-    
     # Affichage du nombre d'utilisateurs
     st.write(f"Nombre d'utilisateurs actuellement en ligne : {get_user_count()['count']}")
 
