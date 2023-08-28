@@ -52,15 +52,19 @@ def display_data_page():
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
-    if search_query:
+    
+    if combined_data is not None and not combined_data.empty and search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    # ... [Reste du code pour afficher les données, sans modifications]
+    if combined_data is not None and not combined_data.empty:
+        st.dataframe(combined_data)  # Affiche le DataFrame
 
     email_input = st.text_input("Entrez votre e-mail pour recevoir des mises à jour:")
     if email_input:
         user_email = email_input
         st.success("E-mail enregistré avec succès!")
+
+# ... [Reste du code pour les autres fonctions et main()]
 
 def admin_page():
     global user_email
