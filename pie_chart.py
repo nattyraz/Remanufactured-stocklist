@@ -37,10 +37,6 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-def is_user_online():
-    global user_online_timestamp
-    return (datetime.now() - user_online_timestamp).seconds < 300
-
 def display_data_page():
     global user_online_timestamp, user_email
     user_online_timestamp = datetime.now()
@@ -58,15 +54,18 @@ def display_data_page():
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Si des données sont disponibles
-    if combined_data is not None and not combined_data.empty:
-        
-        # Si une requête de recherche est entrée, filtrer les données
+    # Déclarations de débogage
+    if combined_data is None:
+        st.warning("Le DataFrame 'combined_data' est None.")
+    elif combined_data.empty:
+        st.warning("Le DataFrame 'combined_data' est vide.")
+    else:
+        st.success("Le DataFrame 'combined_data' est chargé avec succès.")
+
         search_query = st.text_input("Search by description or No. (use the * in your searches):")
         if search_query:
             combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
         
-        # Afficher le DataFrame filtré ou complet
         st.dataframe(combined_data)
 
     email_input = st.text_input("Entrez votre e-mail pour recevoir des mises à jour:")
