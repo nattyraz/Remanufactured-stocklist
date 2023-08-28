@@ -1,12 +1,4 @@
 import streamlit as st
-
-    # Requesting user details
-    user_name = st.text_input("Nom d'utilisateur:", "")
-    user_email = st.text_input("Email:", "")
-    if user_name and user_email:
-        with open("log/texte-log.txt", "a") as log_file:
-            log_file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {user_name} - {user_email}\n")
-
 import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
@@ -121,9 +113,9 @@ def admin_page():
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Ma liste", "Administration"])
+    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
     
-    if page == "Ma liste":
+    if page == "Affichage des données":
         display_data_page()
     else:
         admin_page()
