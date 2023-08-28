@@ -72,6 +72,9 @@ def display_data_page():
     if email_input:
         user_email = email_input
         st.success("E-mail enregistré avec succès!")
+def is_user_online():
+    global user_online_timestamp
+    return (datetime.now() - user_online_timestamp).seconds < 300
 
 def admin_page():
     global user_email
