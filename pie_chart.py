@@ -3,9 +3,16 @@ import pandas as pd
 from datetime import datetime, timedelta
 import re
 
+# Configuration de la page
+st.set_page_config(
+    page_title="Remanufactured Stocklist",
+    page_icon="favicon.ico",
+    layout="wide"
+)
+
 # Variables globales
 LOGIN = "admin"
-PASSWORD = "admin"  # Changez cette valeur par votre propre mot de passe
+PASSWORD = "admin"
 user_online_timestamp = datetime.now() - timedelta(days=1)
 user_email = None
 
@@ -51,20 +58,21 @@ def display_data_page():
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    search_query = st.text_input("Search by description or No. (use the * in your searches):")
-    
-    if combined_data is not None and not combined_data.empty and search_query:
-        combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
-
+    # Si des données sont disponibles
     if combined_data is not None and not combined_data.empty:
-        st.dataframe(combined_data)  # Affiche le DataFrame
+        
+        # Si une requête de recherche est entrée, filtrer les données
+        search_query = st.text_input("Search by description or No. (use the * in your searches):")
+        if search_query:
+            combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
+        
+        # Afficher le DataFrame filtré ou complet
+        st.dataframe(combined_data)
 
     email_input = st.text_input("Entrez votre e-mail pour recevoir des mises à jour:")
     if email_input:
         user_email = email_input
         st.success("E-mail enregistré avec succès!")
-
-# ... [Reste du code pour les autres fonctions et main()]
 
 def admin_page():
     global user_email
