@@ -4,20 +4,19 @@ from datetime import datetime
 import re  # For regular expression matching
 #import toml
 
-# Constants for Admin Authentication
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "foxway2023"
-
-def check_credentials(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
-
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
     page_icon="favicon.ico",
     layout="wide"
 )
+
+# Constants for Admin Authentication
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "foxway2023"
+
+def check_credentials(username, password):
+    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
