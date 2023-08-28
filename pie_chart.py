@@ -60,7 +60,7 @@ def display_data_page():
     if combined_data is not None and not combined_data.empty:
         # ... [rest of the code as is]
 
-def admin_page():
+ddef admin_page():
     st.title("Administration")
 
     # Admin authentication
