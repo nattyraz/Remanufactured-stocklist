@@ -1,15 +1,15 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime
-import re  # For regular expression matching
 
-# Requesting user details
+    # Requesting user details
     user_name = st.text_input("Nom d'utilisateur:", "")
     user_email = st.text_input("Email:", "")
     if user_name and user_email:
         with open("log/texte-log.txt", "a") as log_file:
             log_file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {user_name} - {user_email}\n")
 
+import pandas as pd
+from datetime import datetime
+import re  # For regular expression matching
 
 # Constants for Admin Authentication
 ADMIN_USERNAME = "admin"
