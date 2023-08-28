@@ -12,7 +12,7 @@ st.set_page_config(
 
 # Constants
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin"
+ADMIN_PASSWORD = "password"
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
@@ -45,6 +45,7 @@ def admin_page():
     
     if check_credentials(username, password):
         # (Same code as before for file uploads...)
+        pass
     else:
         st.warning("Identifiants incorrects. Veuillez réessayer.")
 
