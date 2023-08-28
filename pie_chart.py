@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
+import toml
 
-# Constants for Admin Authentication
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "password"
+# Load configuration
+config = toml.load("config.toml")
+ADMIN_USERNAME = config["admin"]["username"]
+ADMIN_PASSWORD = config["admin"]["password"]
 
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
