@@ -121,7 +121,7 @@ def admin_page():
         combined_data = pd.concat(dataframes)
         
         # Load the dock.csv file
-        dock_df = pd.read_csv("/mnt/data/dock.csv")
+        dock_df = pd.read_csv("/data/dock.csv")
         
         # Get compatible dock for each reference in combined_data
         combined_data['Compatible Dock'] = combined_data['Reference'].apply(lambda x: get_compatible_dock(x, dock_df))
