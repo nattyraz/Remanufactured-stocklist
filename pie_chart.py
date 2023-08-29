@@ -120,11 +120,14 @@ def admin_page():
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
         
-        # Load the dock.csv file
-        dock_df = pd.read_csv("/data/dock.csv")
-        
-        # Get compatible dock for each reference in combined_data
-        combined_data['Compatible Dock'] = combined_data['Reference'].apply(lambda x: get_compatible_dock(x, dock_df))
+        try:
+            # Load the dock.csv file using the updated path
+            dock_df = pd.read_csv("data/dock.csv")
+            
+            # Get compatible dock for each reference in combined_data
+            combined_data['Compatible Dock'] = combined_data['Reference'].apply(lambda x: get_compatible_dock(x, dock_df))
+        except FileNotFoundError:
+            st.warning("dock.csv file not found. Compatible Dock information won't be added.")
         
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
@@ -132,6 +135,7 @@ def admin_page():
         st.write(combined_data)
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
+
 
 def main():
     st.sidebar.title("Navigation")
