@@ -10,7 +10,6 @@ ADMIN_PASSWORD = "foxway2023"
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
@@ -34,6 +33,22 @@ def advanced_filter_data_by_search_query(df, query):
             pattern = re.compile(sub_query, re.IGNORECASE)
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
+
+def get_compatible_dock(reference, dock_df):
+    """
+    Get the compatible dock from the dock dataframe based on the reference.
+    
+    Parameters:
+    - reference (str): The reference to search for.
+    - dock_df (pd.DataFrame): The dock dataframe.
+    
+    Returns:
+    - str: The compatible dock if found, None otherwise.
+    """
+    match = dock_df[dock_df['A'] == reference]
+    if not match.empty:
+        return match.iloc[0]['Compatible Dock']
+    return None
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
@@ -104,6 +119,13 @@ def admin_page():
     if files:
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
+        
+        # Load the dock.csv file
+        dock_df = pd.read_csv("/mnt/data/dock.csv")
+        
+        # Get compatible dock for each reference in combined_data
+        combined_data['Compatible Dock'] = combined_data['Reference'].apply(lambda x: get_compatible_dock(x, dock_df))
+        
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
         st.write("Prévisualisation des données combinées :")
