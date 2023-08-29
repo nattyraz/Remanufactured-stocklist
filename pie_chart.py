@@ -99,7 +99,7 @@ def display_data_page():
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
 
-def admin_page():
+ddef admin_page():
     st.title("Administration")
 
     username = st.text_input("Nom d'utilisateur", type="default")
@@ -121,13 +121,13 @@ def admin_page():
         combined_data = pd.concat(dataframes)
         
         try:
-            # Load the dock.csv file using the updated path
+            # Load the dock.csv file from the "data" directory
             dock_df = pd.read_csv("data/dock.csv")
             
             # Get compatible dock for each reference in combined_data
             combined_data['Compatible Dock'] = combined_data['Reference'].apply(lambda x: get_compatible_dock(x, dock_df))
         except FileNotFoundError:
-            st.warning("dock.csv file not found. Compatible Dock information won't be added.")
+            st.warning("dock.csv file not found in the 'data' directory. Compatible Dock information won't be added.")
         
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
@@ -135,7 +135,6 @@ def admin_page():
         st.write(combined_data)
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
-
 
 def main():
     st.sidebar.title("Navigation")
