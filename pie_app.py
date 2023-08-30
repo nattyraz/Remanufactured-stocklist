@@ -63,7 +63,7 @@ def display_data_page():
         }
         combined_data = combined_data.rename(columns=rename_columns)
 
-        col_brand, col_category, col_size_format, col_keyboard, col_conditione = st.columns(5)
+        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
 
         
         filters = {}
