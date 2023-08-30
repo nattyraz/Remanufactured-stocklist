@@ -53,14 +53,14 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
+        col_item_cat, col_prod_group, col_keyboard, col_condition, col_brand = st.columns(5)
         
         filters = {
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
             "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
-            "brand": col_brand.multiselect("brand", list(combined_data["brand"].unique()))
+            "brand": col_brand.multiselect("brand", list(combined_data["brand"].unique()))  # Filtre "brand"
         }
         
         for column, selected_values in filters.items():
