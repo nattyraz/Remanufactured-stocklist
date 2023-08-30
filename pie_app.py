@@ -1,5 +1,8 @@
 import streamlit as st
-impo
+import pandas as pd
+from datetime import datetime
+import re  # For regular expression matching
+
 if page == "Vérification de station d'accueil":
     st.title("Vérification de station d'accueil")
     model_input = st.text_input("Entrez le modèle ou les 4 chiffres de référence de votre notebook Lenovo:")
