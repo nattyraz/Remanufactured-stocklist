@@ -51,21 +51,19 @@ def display_data_page():
     
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
-        
-    if "brand" in combined_data.columns:
-        col_famille = st.columns(1)
-        filters["Famille"] = col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
 
     if combined_data is not None and not combined_data.empty:
-        col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
         filters = {
-            "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
-            "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
-            "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
-            "Famille": col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
+            "Item Category Code": st.columns(1).multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
+            "Product Group Code": st.columns(1).multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
+            "Keyboard Language": st.columns(1).multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
+            "Condition": st.columns(1).multiselect("Condition", list(combined_data["Condition"].unique()))
         }
         
+        # Vérification de la présence de la colonne "brand"
+        if "brand" in combined_data.columns:
+            filters["Famille"] = st.columns(1).multiselect("Famille", list(combined_data["brand"].unique()))
+
         for column, selected_values in filters.items():
             if column == "Famille":
                 combined_data = combined_data[combined_data["brand"].isin(selected_values)]
@@ -111,20 +109,3 @@ def admin_page():
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
         last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
-        st.write("Prévisualisation des données combinées :")
-        st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
-
-def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
-    
-    if page == "Affichage des données":
-        display_data_page()
-    else:
-        admin_page()
-
-if __name__ == "__main__":
-    main()
