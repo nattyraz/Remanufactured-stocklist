@@ -60,7 +60,7 @@ def display_data_page():
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
             "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
-            "brand": col_brand.multiselect("brand", list(combined_data["brand"].unique()))  # Filtre "brand"
+            "Brand": col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))  # Filtre "brand"
         }
         
         for column, selected_values in filters.items():
@@ -77,7 +77,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "brand"]
+        columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
