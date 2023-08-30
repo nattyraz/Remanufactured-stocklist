@@ -68,7 +68,7 @@ def display_data_page():
         
         filters = {}
         if "Brand" in combined_data.columns:
-            filters["Marque"] = col_marque.multiselect("Marque", list(combined_data["Marque"].unique()))
+            filters["Brand"] = col_marque.multiselect("Brand", list(combined_data["Brand"].unique()))
         if "Category" in combined_data.columns:
             filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
         if "Size/Format" in combined_data.columns:
@@ -76,7 +76,7 @@ def display_data_page():
         if "Keyboard" in combined_data.columns:
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
         if "Condition" in combined_data.columns:
-            filters["Conditione"] = col_language.multiselect("Condition", list(combined_data["Condition"].unique()))
+            filters["Condition"] = col_language.multiselect("Condition", list(combined_data["Condition"].unique()))
         
         for column, selected_values in filters.items():
             if selected_values:
