@@ -10,7 +10,6 @@ ADMIN_PASSWORD = "foxway2023"
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
@@ -54,16 +53,19 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        col_item_cat, col_prod_group, col_keyboard, col_condition = st.columns(4)
+        col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
         filters = {
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
+            "Famille": col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
         }
         
         for column, selected_values in filters.items():
-            if selected_values:
+            if column == "Famille":
+                combined_data = combined_data[combined_data["brand"].isin(selected_values)]
+            elif selected_values:
                 combined_data = combined_data[combined_data[column].isin(selected_values)]
         
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
@@ -76,13 +78,13 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land"]
+        columns_to_remove = ["Kunde land", "brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-    st.dataframe(df.drop(columns=["Brand", "Kunde land"]))
+        st.dataframe(s)
 
 def admin_page():
     st.title("Administration")
@@ -102,9 +104,6 @@ def admin_page():
     files = [file for file in [file1, file2, file3, file4] if file]
     
     if files:
-    brands = df["Brand"].unique()
-    selected_brand = st.selectbox("Select Brand:", brands)
-    df = df[df["Brand"] == selected_brand]
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
         last_update_date = datetime.now()
