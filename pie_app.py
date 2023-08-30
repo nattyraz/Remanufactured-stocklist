@@ -60,7 +60,7 @@ def display_data_page():
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
             "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
-            "Famille": col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
+            "Famille": col_brand.multiselect("brand", list(combined_data["brand"].unique()))
         }
         
         for column, selected_values in filters.items():
