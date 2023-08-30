@@ -53,16 +53,17 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
+        col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
         filters = {
-            "Item Category Code": st.columns(1).multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
-            "Product Group Code": st.columns(1).multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
-            "Keyboard Language": st.columns(1).multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": st.columns(1).multiselect("Condition", list(combined_data["Condition"].unique()))
+            "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
+            "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
+            "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
+            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
         }
         
         # Vérification de la présence de la colonne "brand"
         if "brand" in combined_data.columns:
-            filters["Famille"] = st.columns(1).multiselect("Famille", list(combined_data["brand"].unique()))
+            filters["Famille"] = col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
 
         for column, selected_values in filters.items():
             if column == "Famille":
