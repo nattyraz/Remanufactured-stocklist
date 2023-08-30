@@ -113,7 +113,7 @@ def admin_page():
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration", "Vérification de station d'accueil"])
+    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
     
     if page == "Affichage des données":
         display_data_page()
@@ -121,24 +121,6 @@ def main():
         admin_page()
 
 if __name__ == "__main__":
-    main()if page == "Vérification de station d'accueil":
-    st.title("Vérification de station d'accueil")
-    model_input = st.text_input("Entrez le modèle ou les 4 chiffres de référence de votre notebook Lenovo:")
-    
-    if model_input:
-        # Load the docking data from the CSV
-        dock_data = pd.read_csv("dock.csv", delimiter=";")
-        
-        # Filter the rows where the model matches
-        matching_rows = dock_data[dock_data['Model'] == model_input]
-        
-        if not matching_rows.empty:
-            compatible_docks = matching_rows.columns[matching_rows.eq(model_input).any()].tolist()
-            compatible_docks.remove('Model')  # Remove the 'Model' column from the list
-            st.write(f"Stations d'accueil compatibles pour {model_input}:")
-            for dock in compatible_docks:
-                st.write(dock)
-        else:
-            st.write(f"Aucune station d'accueil trouvée pour {model_input}.")
+    main()
 
 
