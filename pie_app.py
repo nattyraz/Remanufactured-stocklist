@@ -55,19 +55,19 @@ def display_data_page():
     if combined_data is not None and not combined_data.empty:
         # Rename columns
         rename_columns = {
-            "Brand": "Marque",
+            "Brand": "Brand",
             "Item Category Code": "Category",
             "Product Group Code": "Size/Format",
-            "Software Language": "Language",
+            "Condition": "Condition",
             "Keyboard Language": "Keyboard"
         }
         combined_data = combined_data.rename(columns=rename_columns)
 
-        col_marque, col_category, col_size_format, col_keyboard, col_language = st.columns(5)
+        col_Brand, col_category, col_size_format, col_keyboard, col_Conditione = st.columns(5)
 
         
         filters = {}
-        if "Marque" in combined_data.columns:
+        if "Brand" in combined_data.columns:
             filters["Marque"] = col_marque.multiselect("Marque", list(combined_data["Marque"].unique()))
         if "Category" in combined_data.columns:
             filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
@@ -75,8 +75,8 @@ def display_data_page():
             filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
         if "Keyboard" in combined_data.columns:
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-        if "Language" in combined_data.columns:
-            filters["Language"] = col_language.multiselect("Language", list(combined_data["Language"].unique()))
+        if "Condition" in combined_data.columns:
+            filters["Conditione"] = col_language.multiselect("Condition", list(combined_data["Condition"].unique()))
         
         for column, selected_values in filters.items():
             if selected_values:
@@ -92,7 +92,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "Marque"]
+        columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
