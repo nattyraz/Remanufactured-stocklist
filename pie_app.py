@@ -85,14 +85,15 @@ def display_data_page():
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
 
-def admin_page():
-    st.title("Administration")
+# ... (pre-existing code remains unchanged)
 
-    username = st.text_input("Nom d'utilisateur", type="default")
-    password = st.text_input("Mot de passe", type="password")
+def admin_page():
+    st.sidebar.title("Administration")
+    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
+    password = st.sidebar.text_input("Mot de passe", type="password")
     
     if not check_credentials(username, password):
-        st.warning("Identifiants incorrects. Veuillez réessayer.")
+        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
         return
 
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
