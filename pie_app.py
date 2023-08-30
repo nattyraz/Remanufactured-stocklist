@@ -56,11 +56,11 @@ def display_data_page():
         col_item_cat, col_prod_group, col_keyboard, col_condition, col_brand = st.columns(5)
         
         filters = {
+            "Brand": col_brand.multiselect("Brand", list(combined_data["Brand"].unique())),  # Filtre "brand"
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
-            "Brand": col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))  # Filtre "brand"
+            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
         }
         
         for column, selected_values in filters.items():
