@@ -59,17 +59,12 @@ def display_data_page():
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
             "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique())),
+            "Famille": col_famille.multiselect("Famille", list(combined_data["brand"].unique())) if "brand" in combined_data.columns else []
         }
         
-        # Vérification de la présence de la colonne "brand"
-        if "brand" in combined_data.columns:
-            filters["Famille"] = col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
-
         for column, selected_values in filters.items():
-            if column == "Famille":
-                combined_data = combined_data[combined_data["brand"].isin(selected_values)]
-            elif selected_values:
+            if selected_values:
                 combined_data = combined_data[combined_data[column].isin(selected_values)]
         
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
@@ -82,7 +77,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "brand"]  # Added "brand" to the list of columns to remove
+        columns_to_remove = ["Kunde land", "brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
