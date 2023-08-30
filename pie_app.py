@@ -54,6 +54,7 @@ def display_data_page():
 
     if combined_data is not None and not combined_data.empty:
         col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
+        
         filters = {
             "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
             "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
@@ -81,7 +82,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "brand"]
+        columns_to_remove = ["Kunde land", "brand"]  # Added "brand" to the list of columns to remove
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
