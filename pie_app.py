@@ -51,6 +51,10 @@ def display_data_page():
     
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
+        
+    if "brand" in combined_data.columns:
+        col_famille = st.columns(1)
+        filters["Famille"] = col_famille.multiselect("Famille", list(combined_data["brand"].unique()))
 
     if combined_data is not None and not combined_data.empty:
         col_item_cat, col_prod_group, col_keyboard, col_condition, col_famille = st.columns(5)
