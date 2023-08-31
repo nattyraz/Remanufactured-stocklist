@@ -49,7 +49,6 @@ def decode_description(description):
         "GC": "Graphic Card",
         "4": "4G inclus",
         "4U": "4G upgradable"
-        # Ajoutez d'autres abréviations si nécessaire
     }
     
     # Ignorer la première partie de la description
@@ -60,11 +59,13 @@ def decode_description(description):
     
     details = []
     for abbr, full in sorted_abbreviations.items():
-        if abbr in description_end:
+        # Vérifier les abréviations délimitées par des '/'
+        if '/' + abbr + '/' in description_end:
+            details.append(full)
+        # Vérifier si l'abréviation est au début ou à la fin de la description
+        elif description_end.startswith(abbr + '/') or description_end.endswith('/' + abbr):
             details.append(full)
     return ", ".join(details)
-
-
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
