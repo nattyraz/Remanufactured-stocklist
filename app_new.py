@@ -41,16 +41,18 @@ def decode_description(description):
         "WI": "Wifi",
         "NOOS": "No Operating System",
         "N": "NFT",
-        "4": "4G Inclus",
-        "4U": "4G upgradable",
         # Ajoutez d'autres abréviations si nécessaire
     }
     
+    # Ignorer la première partie de la description
+    description_end = description.split("/", 1)[-1]
+    
     details = []
     for abbr, full in abbreviations.items():
-        if abbr in description:
+        if abbr in description_end:
             details.append(full)
     return ", ".join(details)
+
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
