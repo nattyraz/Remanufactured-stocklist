@@ -42,24 +42,28 @@ def decode_description(description):
         "NOOS": "No Operating System",
         "N": "NFT",
         "MB": "Multy Burner",
-        "w10P": "Windows 10 Pro",
-        "W11P": "Windows 11 pro",
+        "W10P": "Windows 10 Pro",
+        "W11P": "Windows 11 Pro",
         "W10": "Windows 10 Home",
         "W11": "Windows 11 Home",
         "GC": "Graphic Card",
         "4": "4G inclus",
-        "4U": "4G upgrable"
+        "4U": "4G upgradable"
         # Ajoutez d'autres abréviations si nécessaire
     }
     
-   # Ignorer la première partie de la description
+    # Ignorer la première partie de la description
     description_end = description.split("/", 1)[-1]
     
+    # Parcourir les abréviations en fonction de leur longueur, en commençant par les plus longues
+    sorted_abbreviations = dict(sorted(abbreviations.items(), key=lambda item: -len(item[0])))
+    
     details = []
-    for abbr, full in abbreviations.items():
+    for abbr, full in sorted_abbreviations.items():
         if abbr in description_end:
             details.append(full)
     return ", ".join(details)
+
 
 
 def display_data_page():
