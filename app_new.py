@@ -41,6 +41,14 @@ def decode_description(description):
         "WI": "Wifi",
         "NOOS": "No Operating System",
         "N": "NFT",
+        "MB": "Multy Burner",
+        "w10p": "Windows 10 Pro",
+        "W11P": "Windows 11 pro",
+        "W10": "Windows 10 Home",
+        "W11": "Windows 11 Home",
+        "GC": "Graphic Card",
+        "4": "4G inclus",
+        "4U": "4G upgrable"
         # Ajoutez d'autres abréviations si nécessaire
     }
     
