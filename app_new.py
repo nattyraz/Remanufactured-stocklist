@@ -41,6 +41,8 @@ def decode_description(description):
         "WI": "Wifi",
         "NOOS": "No Operating System",
         "N": "NFT",
+        "4": "4G Inclus",
+        "4U": "4G upgradable",
         # Ajoutez d'autres abréviations si nécessaire
     }
     
