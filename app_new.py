@@ -42,7 +42,7 @@ def decode_description(description):
         "NOOS": "No Operating System",
         "N": "NFT",
         "MB": "Multy Burner",
-        "w10p": "Windows 10 Pro",
+        "w10P": "Windows 10 Pro",
         "W11P": "Windows 11 pro",
         "W10": "Windows 10 Home",
         "W11": "Windows 11 Home",
