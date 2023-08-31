@@ -52,7 +52,7 @@ def decode_description(description):
         # Ajoutez d'autres abréviations si nécessaire
     }
     
-    # Ignorer la première partie de la description
+   # Ignorer la première partie de la description
     description_end = description.split("/", 1)[-1]
     
     details = []
