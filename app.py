@@ -10,7 +10,6 @@ ADMIN_PASSWORD = "foxway2023"
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
@@ -54,13 +53,30 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        col_item_cat, col_prod_group, col_keyboard, col_condition = st.columns(4)
-        filters = {
-            "Item Category Code": col_item_cat.multiselect("Item Category Code", list(combined_data["Item Category Code"].unique())),
-            "Product Group Code": col_prod_group.multiselect("Product Group Code", list(combined_data["Product Group Code"].unique())),
-            "Keyboard Language": col_keyboard.multiselect("Keyboard Language", list(combined_data["Keyboard Language"].unique())),
-            "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+        # Rename columns
+        rename_columns = {
+            "Brand": "Brand",
+            "Item Category Code": "Category",
+            "Product Group Code": "Size/Format",
+            "Condition": "Condition",
+            "Keyboard Language": "Keyboard"
         }
+        combined_data = combined_data.rename(columns=rename_columns)
+
+        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
+
+        
+        filters = {}
+        if "Brand" in combined_data.columns:
+            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
+        if "Category" in combined_data.columns:
+            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
+        if "Size/Format" in combined_data.columns:
+            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
+        if "Keyboard" in combined_data.columns:
+            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
+        if "Condition" in combined_data.columns:
+            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
         
         for column, selected_values in filters.items():
             if selected_values:
@@ -76,7 +92,7 @@ def display_data_page():
         ]
         
         # Remove unwanted columns
-        columns_to_remove = ["Kunde land"]
+        columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
@@ -84,14 +100,15 @@ def display_data_page():
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
 
-def admin_page():
-    st.title("Administration")
+# ... (pre-existing code remains unchanged)
 
-    username = st.text_input("Nom d'utilisateur", type="default")
-    password = st.text_input("Mot de passe", type="password")
+def admin_page():
+    st.sidebar.title("Administration")
+    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
+    password = st.sidebar.text_input("Mot de passe", type="password")
     
     if not check_credentials(username, password):
-        st.warning("Identifiants incorrects. Veuillez réessayer.")
+        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
         return
 
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
