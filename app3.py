@@ -38,7 +38,7 @@ def generate_excel(df):
     """
     Generate an Excel file from the given DataFrame and return the file path.
     """
-    output_path = "/mnt/data/exported_data.xlsx"
+    output_path = "/data/exported_data.xlsx"
     df.to_excel(output_path, index=False)
     return output_path
 
