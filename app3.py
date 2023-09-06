@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
+import io
 
 # Constants for Admin Authentication
 ADMIN_USERNAME = "admin"
@@ -34,13 +35,15 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-def generate_excel(df):
+def generate_excel_in_memory(df):
     """
-    Generate an Excel file from the given DataFrame and return the file path.
+    Generate an Excel file from the given DataFrame and return the BytesIO object.
     """
-    output_path = "data/exported_data.xlsx"
-    df.to_excel(output_path, index=False)
-    return output_path
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Sheet1')
+    output.seek(0)
+    return output
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
@@ -60,58 +63,20 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    if combined_data is not None and not combined_data.empty:
-        # Rename columns
-        rename_columns = {
-            "Brand": "Brand",
-            "Item Category Code": "Category",
-            "Product Group Code": "Size/Format",
-            "Condition": "Condition",
-            "Keyboard Language": "Keyboard"
-        }
-        combined_data = combined_data.rename(columns=rename_columns)
+    # ... (reste du code)
 
-        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
-
-        filters = {}
-        if "Brand" in combined_data.columns:
-            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
-        if "Category" in combined_data.columns:
-            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
-        if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-        if "Condition" in combined_data.columns:
-            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
-        
-        for column, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
-        
-        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        selected_currency = st.selectbox("Select a currency:", currency_columns)
-        
-        filtered_data = combined_data[
-            (combined_data[selected_currency].notna()) & 
-            (combined_data[selected_currency] != 0) &
-            (combined_data["Avail. Qty"] > 0)
-        ]
-        
-        # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "Brand"]
-        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
-        
-        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
-        columns_to_display.append(selected_currency)
-        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-        st.dataframe(s)
+    s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
+    st.dataframe(s)
     
-        # Ajouter un bouton pour télécharger les données filtrées
-        if st.button("Télécharger les données filtrées en Excel"):
-            file_path = generate_excel(filtered_data)
-            st.markdown(f'<a href="{file_path}" target="_blank">Cliquez ici pour télécharger</a>', unsafe_allow_html=True)
-
+    # Bouton pour préparer le fichier Excel pour le téléchargement
+    if st.button("Préparer le fichier Excel pour le téléchargement"):
+        excel_file = generate_excel_in_memory(filtered_data)
+        st.download_button(
+            label="Télécharger les données filtrées en Excel",
+            data=excel_file,
+            file_name='exported_data.xlsx',
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 def admin_page():
     st.sidebar.title("Administration")
