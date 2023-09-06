@@ -110,7 +110,8 @@ def display_data_page():
         # Ajouter un bouton pour télécharger les données filtrées
         if st.button("Télécharger les données filtrées en Excel"):
             file_path = generate_excel(filtered_data)
-            st.markdown(f"[Cliquez ici pour télécharger]({file_path})")
+            st.markdown(f'<a href="{file_path}" target="_blank">Cliquez ici pour télécharger</a>', unsafe_allow_html=True)
+
 
 def admin_page():
     st.sidebar.title("Administration")
