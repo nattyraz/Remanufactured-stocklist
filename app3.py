@@ -63,20 +63,41 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    # ... (reste du code)
+    if combined_data is not None and not combined_data.empty:
+        # ... (code de filtrage, de renommage des colonnes, etc.)
 
-    s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-    st.dataframe(s)
-    
-    # Bouton pour préparer le fichier Excel pour le téléchargement
-    if st.button("Préparer le fichier Excel pour le téléchargement"):
-        excel_file = generate_excel_in_memory(filtered_data)
-        st.download_button(
-            label="Télécharger les données filtrées en Excel",
-            data=excel_file,
-            file_name='exported_data.xlsx',
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
+        selected_currency = st.selectbox("Select a currency:", currency_columns)
+        
+        filtered_data = combined_data[
+            (combined_data[selected_currency].notna()) & 
+            (combined_data[selected_currency] != 0) &
+            (combined_data["Avail. Qty"] > 0)
+        ]
+        
+        # Remove unwanted columns
+        columns_to_remove = ["Kunde land", "Brand"]
+        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
+        
+        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
+        columns_to_display.append(selected_currency)
+
+        # Vérifiez si filtered_data n'est pas vide avant de le formater et de l'afficher
+        if not filtered_data.empty:
+            s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
+            st.dataframe(s)
+        else:
+            st.write("No data available after applying filters.")
+        
+        # Bouton pour préparer le fichier Excel pour le téléchargement
+        if st.button("Préparer le fichier Excel pour le téléchargement"):
+            excel_file = generate_excel_in_memory(filtered_data)
+            st.download_button(
+                label="Télécharger les données filtrées en Excel",
+                data=excel_file,
+                file_name='exported_data.xlsx',
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
 def admin_page():
     st.sidebar.title("Administration")
