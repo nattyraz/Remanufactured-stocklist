@@ -39,7 +39,7 @@ def display_data_page():
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Remanufactured stocklist Lenovo Garantie Original")
+        st.title("Refurb stocklist ")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
