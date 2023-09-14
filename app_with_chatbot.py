@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import openai
 from datetime import datetime
 import re  # For regular expression matching
 
@@ -140,11 +141,26 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Here's the corrected chatbot function:
 
-
-import streamlit as st
-import openai
-
+# Function to get a response from GPT
+def gpt_response_with_openai(query, data_frame, api_key=None):
+    # Assuming you will use the openai library, here's a basic structure:
+    openai.api_key = api_key if api_key else OPENAI_API_KEY
+    
+    # Some basic intents that use the data frame directly
+    if "combien" in query and "produits" in query:
+        return f"Il y a {len(data_frame)} produits dans la base de données."
+    elif "caractéristiques" in query:
+        return "Les produits ont différentes caractéristiques techniques. Veuillez spécifier un produit pour plus de détails."
+    else:
+        # Making a call to OpenAI's GPT to get the response
+        response = openai.Completion.create(
+          engine="davinci",  # You can choose other engines if you want
+          prompt=query,
+          max_tokens=150
+        )
+        return response.choices[0].text.strip()
 
 # The advanced chatbot section for Streamlit using OpenAI's GPT
 def advanced_chatbot_section(data_frame, last_update_date, api_key=None):
@@ -176,4 +192,3 @@ def advanced_chatbot_section(data_frame, last_update_date, api_key=None):
 # Assuming the API key will be stored securely and passed when the function is called
 advanced_chatbot_section(get_combined_data()['data'], get_last_update_date()['date'])
 
-chatbot_section(messages)
