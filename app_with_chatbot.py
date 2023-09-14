@@ -168,8 +168,9 @@ def chatbot_section(messages):
         # Adding the response to messages
         messages.append({"role": "assistant", "content": response})
 
-# Starting messages
-messages = [{"role": "assistant", "content": "Comment puis-je vous aider?"}]
+if 'messages' not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "Comment puis-je vous aider?"}]
+messages = st.session_state.messages
 
 # Run the chatbot section
 chatbot_section(messages)
