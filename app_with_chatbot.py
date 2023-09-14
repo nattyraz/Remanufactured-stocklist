@@ -145,32 +145,35 @@ if __name__ == "__main__":
 import streamlit as st
 import openai
 
-# The chatbot section for Streamlit
-def chatbot_section(messages):
-    st.title("Chatbot")
+
+# The advanced chatbot section for Streamlit using OpenAI's GPT
+def advanced_chatbot_section(data_frame, last_update_date, api_key=None):
+    st.title("Chatbot - Account Manager")
+    
+    # Using Streamlit's session state for simple memory
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = [{"role": "assistant", "content": "Bonjour! Comment puis-je vous aider en tant que votre Account Manager?"}]
     
     # Display previous chat history
-    for message in messages:
+    for message in st.session_state.chat_history:
         if message['role'] == 'user':
-            st.write(f"**You**: {message['content']}")
+            st.write(f"**Vous**: {message['content']}")
         else:
             st.write(f"**Assistant**: {message['content']}")
     
     # Get user input
-    user_input = st.text_input("Ask the assistant:")
+    user_input = st.text_input("Posez votre question:")
     
     if user_input:
-        messages.append({"role": "user", "content": user_input})
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
         
-        # Fetching the response from OpenAI (this is a mock; in real application, you'd call OpenAI here)
-        response = "This is a mock response. In a real application, you'd fetch a response from OpenAI."
+        # Generate response using the GPT function with OpenAI
+        response = gpt_response_with_openai(user_input, data_frame, api_key)
         
-        # Adding the response to messages
-        messages.append({"role": "assistant", "content": response})
+        # Append the response to the chat history
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
 
-if 'messages' not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Comment puis-je vous aider?"}]
-messages = st.session_state.messages
+# Assuming the API key will be stored securely and passed when the function is called
+advanced_chatbot_section(get_combined_data()['data'], get_last_update_date()['date'])
 
-# Run the chatbot section
 chatbot_section(messages)
