@@ -4,8 +4,8 @@ from datetime import datetime
 import re  # For regular expression matching
 
 # Constants for Admin Authentication
-ADMIN_PASSWORD = st.secrets["ADMIN_PASSWORD"]
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+ADMIN_PASSWORD = st.secrets["general"]["ADMIN_PASSWORD"]
+OPENAI_API_KEY = st.secrets["general"]["OPENAI_API_KEY"]
 
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
