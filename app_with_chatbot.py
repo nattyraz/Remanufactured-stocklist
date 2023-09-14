@@ -35,71 +35,51 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-def display_data_page():
-    col1, col2 = st.columns([1, 6])
-    with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
-    with col2:
-        st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
+# Function to get a response from GPT
+def gpt_response_with_openai(query, data_frame, api_key=None):
+    # Assuming you will use the openai library, here's a basic structure:
+    openai.api_key = api_key if api_key else OPENAI_API_KEY
     
-    combined_data = get_combined_data()['data']
-    last_update_date = get_last_update_date()['date']
-    
-    if last_update_date:
-        st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    search_query = st.text_input("Search by description or No. (use the * in your searches):")
-    
-    if search_query:
-        combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
+    # Some basic intents that use the data frame directly
+    if "combien" in query and "produits" in query:
+        return f"Il y a {len(data_frame)} produits dans la base de données."
+    elif "caractéristiques" in query:
+        return "Les produits ont différentes caractéristiques techniques. Veuillez spécifier un produit pour plus de détails."
+    else:
+        # Making a call to OpenAI's GPT to get the response
+        response = openai.Completion.create(
+          engine="davinci",  # You can choose other engines if you want
+          prompt=query,
+          max_tokens=150
+        )
+        return response.choices[0].text.strip()
 
-    if combined_data is not None and not combined_data.empty:
-        # Rename columns
-        rename_columns = {
-            "Brand": "Brand",
-            "Item Category Code": "Category",
-            "Product Group Code": "Size/Format",
-            "Condition": "Condition",
-            "Keyboard Language": "Keyboard"
-        }
-        combined_data = combined_data.rename(columns=rename_columns)
-
-        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
-
+# The advanced chatbot section for Streamlit using OpenAI's GPT
+def advanced_chatbot_section(data_frame, last_update_date, api_key=None):
+    st.title("Chatbot - Account Manager")
+    
+    # Using Streamlit's session state for simple memory
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = [{"role": "assistant", "content": "Bonjour! Comment puis-je vous aider en tant que votre Account Manager?"}]
+    
+    # Display previous chat history
+    for message in st.session_state.chat_history:
+        if message['role'] == 'user':
+            st.write(f"**Vous**: {message['content']}")
+        else:
+            st.write(f"**Assistant**: {message['content']}")
+    
+    # Get user input
+    user_input = st.text_input("Posez votre question:")
+    
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
         
-        filters = {}
-        if "Brand" in combined_data.columns:
-            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
-        if "Category" in combined_data.columns:
-            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
-        if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-        if "Condition" in combined_data.columns:
-            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+        # Generate response using the GPT function with OpenAI
+        response = gpt_response_with_openai(user_input, data_frame, api_key)
         
-        for column, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
-        
-        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        selected_currency = st.selectbox("Select a currency:", currency_columns)
-        
-        filtered_data = combined_data[
-            (combined_data[selected_currency].notna()) & 
-            (combined_data[selected_currency] != 0) &
-            (combined_data["Avail. Qty"] > 0)
-        ]
-        
-        # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "Brand"]
-        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
-        
-        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
-        columns_to_display.append(selected_currency)
-        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-        st.dataframe(s)
+        # Append the response to the chat history
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
 
 # ... (pre-existing code remains unchanged)
 
