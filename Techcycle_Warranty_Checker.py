@@ -3,7 +3,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 
 # Titre de l'application
-st.title("Techcycle Warranty Checker")
+st.title("Teqcycle Warranty Checker")
 
 # Durée de la garantie en jours (3 ans)
 WARRANTY_DAYS = 3 * 365
