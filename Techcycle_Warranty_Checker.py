@@ -46,9 +46,9 @@ elif page == "Client":
                 stored_data = f.read().splitlines()
             for record in stored_data:
                 if "|" in record:
-    stored_serial, stored_date = record.split("|")
-else:
-    continue
+                     stored_serial, stored_date = record.split("|")
+                else:
+                    continue
 
                 decoded_serial = base64.b64decode(stored_serial).decode()
                 if serial_number == decoded_serial:
