@@ -1,67 +1,58 @@
-
 import streamlit as st
 from datetime import datetime, timedelta
 import os
 import base64
 import pandas as pd
-import re
 
-# Function to convert the date to datetime format
+# Fonction pour convertir la date au format datetime
 def convert_date(date_str):
     return datetime.strptime(date_str, "%d-%m-%Y")
 
-# App title
+# Titre de l'application
 st.title("Techcycle Warranty Checker")
 
-# Warranty duration in days (3 years)
+# Durée de la garantie en jours (3 ans)
 WARRANTY_DAYS = 3 * 365
 
-# File to store serial numbers and shipment dates
+# Fichier de stockage des numéros de série et dates de livraison
 storage_file = "serial_numbers_and_dates.txt"
 
-# Select page
-page = st.sidebar.selectbox("Select a page", ["Admin", "Client"])
+# Page de sélection
+page = st.sidebar.selectbox("Sélectionner une page", ["Admin", "Client"])
 
-# Admin page with authentication
+# Page Admin avec authentification
 if page == "Admin":
-    st.subheader("Admin Page")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    st.subheader("Page Admin")
+    username = st.text_input("Nom d'utilisateur")
+    password = st.text_input("Mot de passe", type="password")
 
     if username == "admin" and password == "Foxway2023":
-        uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
-
+        uploaded_file = st.file_uploader("Uploader un fichier Excel", type=["xlsx"])
         if uploaded_file:
             df = pd.read_excel(uploaded_file)
-            text_content = df.to_string(index=False)
-            shipment_date_match = re.search(r"Shipment Date\s+(\d{2}-\d{2}-\d{4})", text_content)
-            shipment_date = shipment_date_match.group(1) if shipment_date_match else "Unknown date"
-
-            file_content = base64.b64encode(uploaded_file.read()).decode()
-            with open(storage_file, "a") as f:
-                f.write(f"{file_content}|{shipment_date}\n")
-            st.write("File and date successfully uploaded")
-
+            shipment_date = df.loc[0, 'Shipment Date'].strftime("%d-%m-%Y")
+            serial_numbers = df.loc[0, 'SN'].split(' / ')
+            for serial in serial_numbers:
+                encoded_serial = base64.b64encode(serial.encode()).decode()
+                with open(storage_file, "a") as f:
+                    f.write(f"{encoded_serial}|{shipment_date}\n")
+            st.write("Fichier et date uploadés avec succès")
     else:
-        st.write("Incorrect credentials")
+        st.write("Identifiants incorrects")
 
-# Client page
+# Page Client
 elif page == "Client":
-    st.subheader("Client Page")
-    serial_number = st.text_input("Enter the serial number")
-    if st.button("Check"):
+    st.subheader("Page Client")
+    serial_number = st.text_input("Entrer le numéro de série")
+    if st.button("Vérifier"):
         if os.path.exists(storage_file):
             with open(storage_file, "r") as f:
                 stored_data = f.read().splitlines()
             for record in stored_data:
                 try:
                     stored_serial, stored_date = record.split("|")
-                except ValueError:
-                    continue
-
-                try:
                     decoded_serial = base64.b64decode(stored_serial).decode()
-                except UnicodeDecodeError:
+                except (ValueError, UnicodeDecodeError):
                     st.write("Error decoding the serial number.")
                     continue
 
@@ -69,13 +60,13 @@ elif page == "Client":
                     purchase_date = convert_date(stored_date)
                     warranty_end = purchase_date + timedelta(days=WARRANTY_DAYS)
                     remaining_time = warranty_end - datetime.now()
-
-                    st.write(f"Purchase date: {purchase_date.strftime('%d-%m-%Y')}")
-                    st.write(f"Warranty starts: {purchase_date.strftime('%d-%m-%Y')}")
-                    st.write(f"Warranty ends: {warranty_end.strftime('%d-%m-%Y')}")
-                    st.write(f"Remaining warranty time: {remaining_time.days} days")
+                    
+                    st.write(f"Date d'achat: {purchase_date.strftime('%d-%m-%Y')}")
+                    st.write(f"Début de la garantie: {purchase_date.strftime('%d-%m-%Y')}")
+                    st.write(f"Fin de la garantie: {warranty_end.strftime('%d-%m-%Y')}")
+                    st.write(f"Temps restant pour la garantie: {remaining_time.days} jours")
                     break
             else:
-                st.write("Serial number not found")
+                st.write("Numéro de série non trouvé")
         else:
-            st.write("No serial numbers have been stored yet.")
+            st.write("Aucun numéro de série n'est encore stocké.")
