@@ -1,7 +1,7 @@
-
 import streamlit as st
 from datetime import datetime, timedelta
 import os
+import base64
 
 # Fonction pour convertir la date au format datetime
 def convert_date(date_str):
@@ -29,8 +29,9 @@ if page == "Admin":
         uploaded_file = st.file_uploader("Uploader un fichier Excel", type=["xlsx"])
         shipment_date = st.text_input("Date de livraison (JJ-MM-AAAA)")
         if uploaded_file and shipment_date:
+            file_content = base64.b64encode(uploaded_file.read()).decode()
             with open(storage_file, "a") as f:
-                f.write(f"{uploaded_file.read().decode()}|{shipment_date}\n")
+                f.write(f"{file_content}|{shipment_date}\\n")
             st.write("Fichier et date uploadés avec succès")
     else:
         st.write("Identifiants incorrects")
@@ -45,7 +46,8 @@ elif page == "Client":
                 stored_data = f.read().splitlines()
             for record in stored_data:
                 stored_serial, stored_date = record.split("|")
-                if serial_number == stored_serial:
+                decoded_serial = base64.b64decode(stored_serial).decode()
+                if serial_number == decoded_serial:
                     purchase_date = convert_date(stored_date)
                     warranty_end = purchase_date + timedelta(days=WARRANTY_DAYS)
                     remaining_time = warranty_end - datetime.now()
