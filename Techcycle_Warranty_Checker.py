@@ -45,12 +45,17 @@ elif page == "Client":
             with open(storage_file, "r") as f:
                 stored_data = f.read().splitlines()
             for record in stored_data:
-                if "|" in record:
-                     stored_serial, stored_date = record.split("|")
-                else:
+                try:
+                    stored_serial, stored_date = record.split("|")
+                except ValueError:
                     continue
-
-                decoded_serial = base64.b64decode(stored_serial).decode()
+                
+                try:
+                    decoded_serial = base64.b64decode(stored_serial).decode()
+                except UnicodeDecodeError:
+                    st.write("Erreur lors du décodage du numéro de série.")
+                    continue
+                
                 if serial_number == decoded_serial:
                     purchase_date = convert_date(stored_date)
                     warranty_end = purchase_date + timedelta(days=WARRANTY_DAYS)
