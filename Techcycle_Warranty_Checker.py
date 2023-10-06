@@ -1,57 +1,58 @@
 import streamlit as st
-from datetime import datetime, timedelta
 import pandas as pd
+from datetime import datetime, timedelta
 import os
 
-# Fonction pour convertir la date au format datetime
-def convert_date(date_str):
-    return datetime.strptime(date_str, "%d-%m-%Y")
+# Chemin du fichier CSV où les données seront stockées
+storage_file = "serial_numbers_and_dates.csv"
 
-# Titre de l'application
+# Initialisation du DataFrame
+columns = ["Invoice Number", "Serial Number", "Shipment Date"]
+if not os.path.exists(storage_file):
+    df = pd.DataFrame(columns=columns)
+    df.to_csv(storage_file, index=False)
+else:
+    df = pd.read_csv(storage_file)
+
+# Interface Streamlit
 st.title("Techcycle Warranty Checker")
 
-# Durée de la garantie en jours (3 ans)
-WARRANTY_DAYS = 3 * 365
-
-# Fichier de stockage des numéros de série et dates de livraison
-storage_file = "global_serial_numbers.csv"
-
-# Page de sélection
 page = st.sidebar.selectbox("Sélectionner une page", ["Admin", "Client"])
 
-# Page Admin avec authentification
+# Page Admin
 if page == "Admin":
     st.subheader("Page Admin")
-    username = st.text_input("Nom d'utilisateur")
-    password = st.text_input("Mot de passe", type="password")
-
-    if username == "admin" and password == "Foxway2023":
-        uploaded_file = st.file_uploader("Uploader un fichier Excel", type=["xlsx"])
-        if uploaded_file:
-            # À compléter: Code pour ajouter les données du fichier Excel au fichier CSV
-            st.write("Fichier uploadé avec succès")
-    else:
-        st.write("Identifiants incorrects")
+    uploaded_file = st.file_uploader("Uploader un fichier Excel", type=["xlsx"])
+    if uploaded_file:
+        temp_df = pd.read_excel(uploaded_file, usecols=["F", "P", "Y"])
+        invoice_number = temp_df.loc[0, "P"]
+        shipment_date = temp_df.loc[0, "Y"]
+        serial_numbers = temp_df["F"].dropna().values
+        new_data = {
+            "Invoice Number": [invoice_number]*len(serial_numbers),
+            "Serial Number": serial_numbers,
+            "Shipment Date": [shipment_date]*len(serial_numbers)
+        }
+        new_df = pd.DataFrame(new_data)
+        df = pd.concat([df, new_df], ignore_index=True)
+        df.to_csv(storage_file, index=False)
+        st.write("Données uploadées avec succès.")
 
 # Page Client
 elif page == "Client":
     st.subheader("Page Client")
     serial_number = st.text_input("Entrer le numéro de série")
     if st.button("Vérifier"):
-        if os.path.exists(storage_file):
+        if os.path.exists(storage_file) and os.path.getsize(storage_file) > 0:
             df = pd.read_csv(storage_file)
-            matching_records = df[df['Serial'] == serial_number]
-            
-            if not matching_records.empty:
-                purchase_date = convert_date(matching_records.iloc[0]['Shipment Date'])
-                warranty_end = purchase_date + timedelta(days=WARRANTY_DAYS)
-                remaining_time = warranty_end - datetime.now()
-                
-                st.write(f"Date d'achat: {purchase_date.strftime('%d-%m-%Y')}")
-                st.write(f"Début de la garantie: {purchase_date.strftime('%d-%m-%Y')}")
-                st.write(f"Fin de la garantie: {warranty_end.strftime('%d-%m-%Y')}")
-                st.write(f"Temps restant pour la garantie: {remaining_time.days} jours")
+            match = df[df["Serial Number"] == serial_number]
+            if not match.empty:
+                st.write(f"Date de livraison: {match.iloc[0]['Shipment Date']}")
+                shipment_date = datetime.strptime(match.iloc[0]['Shipment Date'], "%d-%m-%Y")
+                warranty_end = shipment_date + timedelta(days=3*365)
+                st.write(f"Fin de garantie: {warranty_end.strftime('%d-%m-%Y')}")
             else:
-                st.write("Numéro de série non trouvé")
+                st.write("Numéro de série non trouvé.")
         else:
             st.write("Aucun numéro de série n'est encore stocké.")
+
