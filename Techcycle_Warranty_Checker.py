@@ -55,4 +55,3 @@ elif page == "Client":
                 st.write("Numéro de série non trouvé.")
         else:
             st.write("Aucun numéro de série n'est encore stocké.")
-
