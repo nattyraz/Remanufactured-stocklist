@@ -31,13 +31,7 @@ def advanced_filter_data_by_search_query(df, query):
         if sub_query:
             sub_query = sub_query.replace("*", ".*")
             pattern = re.compile(sub_query, re.IGNORECASE)
-            
-# Filter the dataframe based on the selected condition
-if condition != 'Toutes':
-    df_filtered = df[df['Condition'] == condition]
-else:
-    df_filtered = df
-df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
+            df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
 def display_data_page():
@@ -46,6 +40,11 @@ def display_data_page():
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
+
+# Add a slider for Condition selection
+condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
+
+
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -58,7 +57,15 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    if combined_data is not None and not combined_data.empty:
+    
+
+# Filter the dataframe based on the selected condition
+if condition != 'Toutes':
+    df_filtered = df[df['Condition'] == condition]
+else:
+    df_filtered = df
+
+if combined_data is not None and not combined_data.empty:
         # Rename columns
         rename_columns = {
             "Brand": "Brand",
@@ -145,7 +152,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-# Add a slider for Condition selection
-condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
-
-
