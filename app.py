@@ -10,7 +10,8 @@ admin_username = st.secrets["admin"]["username"]
 admin_password = st.secrets["admin"]["password"]
 
 def check_credentials(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+    return username == admin_username and password == admin_password
+
 
 # Set page configuration
 st.set_page_config(
