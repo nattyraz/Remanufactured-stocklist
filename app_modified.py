@@ -40,10 +40,8 @@ def display_data_page():
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
-
-# Add a slider for Condition selection
-condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
-
+    # Add a slider for Condition selection
+    condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
 
     
     combined_data = get_combined_data()['data']
@@ -58,13 +56,11 @@ condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Ref
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     
-
-# Filter the dataframe based on the selected condition
-if condition != 'Toutes':
-    df_filtered = df[df['Condition'] == condition]
-else:
-    df_filtered = df
-
+    # Filter the dataframe based on the selected condition
+    if condition != 'Toutes':
+        df_filtered = df[df['Condition'] == condition]
+    else:
+        df_filtered = df
 if combined_data is not None and not combined_data.empty:
         # Rename columns
         rename_columns = {
@@ -152,3 +148,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
