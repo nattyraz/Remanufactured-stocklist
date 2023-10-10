@@ -34,16 +34,12 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
 
 # New feature: Slider for filtering by Condition
-selected_condition = st.select_slider(
     "Sélectionnez la condition:",
     options=["Neuf", "Remanufacturé", "Premium", "Refurb"]
 )
 
-if selected_condition == "Neuf":
     filtered_df = df[df["Condition"] == "01 New"]
-elif selected_condition == "Remanufacturé":
     filtered_df = df[df["Condition"].isin(["Gold", "Silver", "Bronze"])]
-elif selected_condition == "Premium":
     filtered_df = df[df["Condition"] == "Premium"]
 else:  # Refurb
     filtered_df = df[~df["Condition"].isin(["01 New", "Gold", "Silver", "Bronze", "Premium"])]
@@ -51,7 +47,6 @@ else:  # Refurb
 # Display the filtered dataframe
 st.dataframe(filtered_df)
 
-return df
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
