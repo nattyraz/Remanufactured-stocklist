@@ -113,27 +113,7 @@ def admin_page():
         st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
         return
 
-    file1 = 
-# ... (existing imports and code)
-
-# Upload the Excel file
-uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
-
-if uploaded_file:
-    # Read the sheet names to display as options
-    with pd.ExcelFile(uploaded_file) as xls:
-        sheet_names = xls.sheet_names
-
-    # Create a selectbox for the user to choose the sheet (i.e., category)
-    selected_sheet = st.selectbox("Select a category", sheet_names)
-    
-    # Read and display the selected sheet
-    df = pd.read_excel(uploaded_file, sheet_name=selected_sheet)
-    st.write(df)
-
-# ... (rest of the code)
-
-st.file_uploader("Importez le premier fichier:", type=["xlsx"])
+    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
     file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
     file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
     file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
