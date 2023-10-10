@@ -6,8 +6,9 @@ import re  # For regular expression matching
 # Constants for Admin Authentication
 #ADMIN_USERNAME = "admin"
 #ADMIN_PASSWORD = "foxway2023"
-admin_username = st.secrets["admin"]["username"]
-admin_password = st.secrets["admin"]["password"]
+admin_username = st.secrets["general"]["ADMIN_USERNAME"]
+admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
+
 
 def check_credentials(username, password):
     return username == admin_username and password == admin_password
