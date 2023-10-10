@@ -36,7 +36,7 @@ def advanced_filter_data_by_search_query(df, query):
 # New feature: Slider for filtering by Condition
     "Sélectionnez la condition:",
     options=["Neuf", "Remanufacturé", "Premium", "Refurb"]
-)
+
 
     filtered_df = df[df["Condition"] == "01 New"]
     filtered_df = df[df["Condition"].isin(["Gold", "Silver", "Bronze"])]
