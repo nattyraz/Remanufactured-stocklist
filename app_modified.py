@@ -147,3 +147,5 @@ if __name__ == "__main__":
     main()
 # Add a slider for Condition selection
 condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
+
+
