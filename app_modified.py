@@ -31,22 +31,14 @@ def advanced_filter_data_by_search_query(df, query):
         if sub_query:
             sub_query = sub_query.replace("*", ".*")
             pattern = re.compile(sub_query, re.IGNORECASE)
-            df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
-
-# New feature: Slider for filtering by Condition
-    "Sélectionnez la condition:",
-    options=["Neuf", "Remanufacturé", "Premium", "Refurb"]
-
-
-    filtered_df = df[df["Condition"] == "01 New"]
-    filtered_df = df[df["Condition"].isin(["Gold", "Silver", "Bronze"])]
-    filtered_df = df[df["Condition"] == "Premium"]
-else:  # Refurb
-    filtered_df = df[~df["Condition"].isin(["01 New", "Gold", "Silver", "Bronze", "Premium"])]
-
-# Display the filtered dataframe
-st.dataframe(filtered_df)
-
+            
+# Filter the dataframe based on the selected condition
+if condition != 'Toutes':
+    df_filtered = df[df['Condition'] == condition]
+else:
+    df_filtered = df
+df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
+    return df
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
@@ -153,3 +145,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Add a slider for Condition selection
+condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
