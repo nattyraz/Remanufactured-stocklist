@@ -51,7 +51,7 @@ else:  # Refurb
 # Display the filtered dataframe
 st.dataframe(filtered_df)
 
-    return df
+return df
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
