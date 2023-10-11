@@ -8,7 +8,7 @@ admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
 def check_credentials(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+    return username == admin_username and password == admin_password
 
 # Set page configuration
 st.set_page_config(
@@ -17,36 +17,19 @@ st.set_page_config(
     layout="wide"
 )
 
-
-# Function to categorize the 'Condition' column into four global categories
+# Updated function to categorize the 'Condition' column and create a 'Sub-Condition' for further filtering
 def filter_condition(df):
+    # Create 'Sub-Condition' column that retains the original 'Condition' values
+    df['Sub-Condition'] = df['Condition']
+    
     conditions = {
         'neuf': ['01 New'],
         'refurb': ['08 Ref.', '02 Bulk', '04 Demo', 'Demo', 'Grade B', 'Grade A', 'Grade C', 'Defekt'],
         'remanufactured': ['SILVER', 'BRONZE', 'GOLD'],
         'premium': ['Premium']
     }
-    # Create a new column for the global categories
-    df['Global_Category'] = df['Condition']
     for category, condition_values in conditions.items():
-        df.loc[df['Condition'].isin(condition_values), 'Global_Category'] = category
-    return df
-
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def get_combined_data():
-    return {'data': None}
-
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def get_last_update_date():
-    return {'date': None}
-
-def advanced_filter_data_by_search_query(df, query):
-    sub_queries = re.split(r'[ *]', query)
-    for sub_query in sub_queries:
-        if sub_query:
-            sub_query = sub_query.replace("*", ".*")
-            pattern = re.compile(sub_query, re.IGNORECASE)
-            df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
+        df.loc[df['Condition'].isin(condition_values), 'Condition'] = category
     return df
 
 def display_data_page():
@@ -136,14 +119,12 @@ def admin_page():
     if files:
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
-        combined_data = filter_condition(combined_data)  # Cette ligne a été corrigée
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
         st.write("Prévisualisation des données combinées :")
         st.write(combined_data)
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
-
 
 def main():
     st.sidebar.title("Navigation")
