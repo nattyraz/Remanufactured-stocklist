@@ -17,9 +17,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# Updated function to categorize the 'Condition' column and create a 'Sub-Condition' for further filtering
+# Function to categorize the 'Condition' column and create a 'Sub-Condition' for further filtering
 def filter_condition(df):
-    # Create 'Sub-Condition' column that retains the original 'Condition' values
     df['Sub-Condition'] = df['Condition']
     
     conditions = {
@@ -28,8 +27,10 @@ def filter_condition(df):
         'remanufactured': ['SILVER', 'BRONZE', 'GOLD'],
         'premium': ['Premium']
     }
+    
     for category, condition_values in conditions.items():
         df.loc[df['Condition'].isin(condition_values), 'Condition'] = category
+    
     return df
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
@@ -40,11 +41,12 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
-
 def display_data_page():
     col1, col2 = st.columns([1, 6])
+    
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
+        st.image("logo_url", width=100)
+        
     with col2:
         st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
     
@@ -56,11 +58,11 @@ def display_data_page():
     
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
     
+    # Assume advanced_filter_data_by_search_query is a function you've defined to filter data
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        # Rename columns
         rename_columns = {
             "Brand": "Brand",
             "Item Category Code": "Category",
@@ -69,11 +71,11 @@ def display_data_page():
             "Keyboard Language": "Keyboard"
         }
         combined_data = combined_data.rename(columns=rename_columns)
-
+        
         col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
-
         
         filters = {}
+        
         if "Brand" in combined_data.columns:
             filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
         if "Category" in combined_data.columns:
@@ -84,6 +86,10 @@ def display_data_page():
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
         if "Condition" in combined_data.columns:
             filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+
+        # Added this for the new filter
+        col_sub_condition = st.columns(1)
+        filters["Sub-Condition"] = col_sub_condition[0].multiselect("Sub-Condition", list(combined_data['Sub-Condition'].unique()))
         
         for column, selected_values in filters.items():
             if selected_values:
@@ -98,16 +104,14 @@ def display_data_page():
             (combined_data["Avail. Qty"] > 0)
         ]
         
-        # Remove unwanted columns
         columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
+        
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
-
-# ... (pre-existing code remains unchanged)
 
 def admin_page():
     st.sidebar.title("Administration")
@@ -129,9 +133,11 @@ def admin_page():
         dataframes = [pd.read_excel(file) for file in files]
         combined_data = pd.concat(dataframes)
         last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
+        
+        st.success("Les données ont été mises à jour avec succès!")
         st.write("Prévisualisation des données combinées :")
         st.write(combined_data)
+        
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
 
@@ -146,4 +152,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
