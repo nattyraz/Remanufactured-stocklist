@@ -8,8 +8,7 @@ admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
 def check_credentials(username, password):
-    return username == admin_username and password == admin_password
-
+    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
 # Set page configuration
 st.set_page_config(
@@ -133,8 +132,8 @@ def admin_page():
     
     if files:
         dataframes = [pd.read_excel(file) for file in files]
-        df = filter_condition(df)
         combined_data = pd.concat(dataframes)
+        combined_data = filter_condition(combined_data)
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
         st.write("Prévisualisation des données combinées :")
@@ -153,3 +152,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
