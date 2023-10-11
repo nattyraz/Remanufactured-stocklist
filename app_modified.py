@@ -137,3 +137,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def get_combined_data():
+    return {'data': None}
+
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def get_last_update_date():
+    return {'date': None}
