@@ -4,8 +4,8 @@ from datetime import datetime
 import re  # For regular expression matching
 
 # Constants for Admin Authentication
-admin_username = st.secrets["general"]["ADMIN_USERNAME"]
-admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "foxway2023"
 
 def check_credentials(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
@@ -132,7 +132,7 @@ def admin_page():
     
     if files:
         dataframes = [pd.read_excel(file) for file in files]
-    df = filter_condition(df)
+        df = filter_condition(df)
         combined_data = pd.concat(dataframes)
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
