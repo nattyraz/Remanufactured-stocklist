@@ -17,6 +17,18 @@ st.set_page_config(
     layout="wide"
 )
 
+
+# Function to categorize the 'Condition' column into four categories
+def filter_condition(df):
+    conditions = {
+        'neuf': ['01 New'],
+        'refurb': ['08 Ref.', '02 Bulk', '04 Demo', 'Demo', 'Grade B', 'Grade A', 'Grade C', 'Defekt'],
+        'remanufactured': ['SILVER', 'BRONZE', 'GOLD'],
+        'premium': ['Premium']
+    }
+    for category, condition_values in conditions.items():
+        df.loc[df['Condition'].isin(condition_values), 'Condition'] = category
+    return df
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
@@ -40,9 +52,6 @@ def display_data_page():
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
-    # Add a slider for Condition selection
-    condition = st.selectbox('Condition:', ['Toutes', 'Neuf', 'Remanufacturé', 'Refurb', 'Premium'])
-
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -55,13 +64,7 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    
-    # Filter the dataframe based on the selected condition
-    if condition != 'Toutes':
-        df_filtered = df[df['Condition'] == condition]
-    else:
-        df_filtered = df
-if combined_data is not None and not combined_data.empty:
+    if combined_data is not None and not combined_data.empty:
         # Rename columns
         rename_columns = {
             "Brand": "Brand",
@@ -129,6 +132,7 @@ def admin_page():
     
     if files:
         dataframes = [pd.read_excel(file) for file in files]
+    df = filter_condition(df)
         combined_data = pd.concat(dataframes)
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
@@ -148,4 +152,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
