@@ -7,8 +7,9 @@ import re  # For regular expression matching
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
+
 def check_credentials(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+    return username == admin_username and password == admin_password
 
 # Set page configuration
 st.set_page_config(
