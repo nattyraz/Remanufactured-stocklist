@@ -7,7 +7,6 @@ import re  # For regular expression matching
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
-
 def check_credentials(username, password):
     return username == admin_username and password == admin_password
 
