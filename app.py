@@ -110,8 +110,8 @@ def admin_page():
     password = st.sidebar.text_input("Mot de passe", type="password")
     
     if not check_credentials(username, password):
-        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
-        return
+         st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+    return
 
         file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
         file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
@@ -120,16 +120,18 @@ def admin_page():
 
         files = [file for file in [file1, file2, file3, file4] if file]
 
-    if files:
-        # Modifier chaque fichier avant de les combiner
-        dataframes = [modify_excel_file(file) for file in files if file is not None]
-        combined_data = pd.concat(dataframes, ignore_index=True)
-        last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
-        st.write("Prévisualisation des données combinées :")
-        st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
+# S'assurer que la variable 'files' est définie avant d'utiliser 'if files'
+if files:
+    # Modifier chaque fichier avant de les combiner
+    dataframes = [modify_excel_file(file) for file in files if file is not None]
+    combined_data = pd.concat(dataframes, ignore_index=True)
+    last_update_date = datetime.now()
+    st.success("The data has been updated successfully!")
+    st.write("Prévisualisation des données combinées :")
+    st.write(combined_data)
+    get_combined_data()['data'] = combined_data
+    get_last_update_date()['date'] = last_update_date
+
 
 
 def main():
