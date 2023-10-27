@@ -113,7 +113,7 @@ def admin_page():
         st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
         return
 
- file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
+    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
     file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
     file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
     file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
