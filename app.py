@@ -130,7 +130,6 @@ def admin_page():
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
 
-
 def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
