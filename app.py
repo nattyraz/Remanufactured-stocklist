@@ -110,15 +110,15 @@ def admin_page():
     password = st.sidebar.text_input("Mot de passe", type="password")
     
     if not check_credentials(username, password):
-         st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
-    return
+        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+        return
 
-        file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-        file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
-        file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
-        file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
+    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
+    file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
+    file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
+    file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
     
-        files = [file for file in [file1, file2, file3, file4] if file]
+    files = [file for file in [file1, file2, file3, file4] if file]
     
     if files:
         dataframes = [pd.read_excel(file) for file in files]
