@@ -123,7 +123,7 @@ def admin_page():
     if files:
         # Modifier chaque fichier avant de les combiner
         dataframes = [modify_excel_file(file) for file in files if file is not None]
-        combined_data = pd.concat(dataframes)
+        combined_data = pd.concat(dataframes, ignore_index=True)
         last_update_date = datetime.now()
         st.success("The data has been updated successfully!")
         st.write("Prévisualisation des données combinées :")
