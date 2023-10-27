@@ -120,16 +120,16 @@ def admin_page():
 
         files = [file for file in [file1, file2, file3, file4] if file]
 
-if files:
-    # Modifier chaque fichier avant de les combiner
-    dataframes = [modify_excel_file(file) for file in files if file is not None]
-    combined_data = pd.concat(dataframes)
-    last_update_date = datetime.now()
-    st.success("The data has been updated successfully!")
-    st.write("Prévisualisation des données combinées :")
-    st.write(combined_data)
-    get_combined_data()['data'] = combined_data
-    get_last_update_date()['date'] = last_update_date
+    if files:
+        # Modifier chaque fichier avant de les combiner
+        dataframes = [modify_excel_file(file) for file in files if file is not None]
+        combined_data = pd.concat(dataframes)
+        last_update_date = datetime.now()
+        st.success("The data has been updated successfully!")
+        st.write("Prévisualisation des données combinées :")
+        st.write(combined_data)
+        get_combined_data()['data'] = combined_data
+        get_last_update_date()['date'] = last_update_date
 
 
 def main():
