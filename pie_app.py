@@ -67,23 +67,17 @@ def display_data_page():
 
         
         filters = {}
-
+if combined_data is not None:
     if "Brand" in combined_data.columns:
         filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
-
     if "Category" in combined_data.columns:
         filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
-
     if "Size/Format" in combined_data.columns:
         filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
-
     if "Keyboard" in combined_data.columns:
         filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-
     if "Condition" in combined_data.columns:
         filters["Condition"] = col_condition.multiselect("Condition", ["new (01 New,02 Bulk)", "refurbish(08 ref,04 demo,demo,grade A, grade B,Grade C,defekt)", "remanufactured ( silver,bronze,gold)", "premimum(premimum)"])
-
-
         
         for column, selected_values in filters.items():
             if selected_values:
