@@ -35,6 +35,15 @@ def advanced_filter_data_by_search_query(df, query):
     return df
 
 def display_data_page():
+
+    # Assuming you load your single file into a variable called 'single_data'
+    single_data = pd.read_excel('your_single_file.xlsx')
+    
+    # Check if the DataFrame is not empty and the 'Condition' column exists
+    if single_data is not None and not single_data.empty and 'Condition' in single_data.columns:
+        # Create the new 'Grouped Condition' column
+        single_data['Grouped Condition'] = single_data['Condition'].apply(map_condition)
+
     col1, col2 = st.columns([1, 6])
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
@@ -140,3 +149,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
