@@ -82,7 +82,6 @@ def display_data_page():
     if "Condition" in combined_data.columns:
         combined_data['Simplified Condition'] = combined_data['Condition'].apply(map_condition)  # Assuming map_condition is defined
         filters["Simplified Condition"] = col_condition.multiselect("Condition Categories", simplified_conditions, default=["New"])
-
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
         if "Condition" in combined_data.columns:
             filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
