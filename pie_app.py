@@ -67,7 +67,7 @@ def display_data_page():
 
         
         filters = {}
-    if combined_data is not None:
+
     if "Brand" in combined_data.columns:
         filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
     if "Category" in combined_data.columns:
