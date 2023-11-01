@@ -76,6 +76,13 @@ def display_data_page():
         if "Size/Format" in combined_data.columns:
             filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
         if "Keyboard" in combined_data.columns:
+
+    # New filter to choose simplified categories for 'Condition'
+    simplified_conditions = ["New", "Refurbish", "Remanufactured", "Premium"]
+    if "Condition" in combined_data.columns:
+        combined_data['Simplified Condition'] = combined_data['Condition'].apply(map_condition)  # Assuming map_condition is defined
+        filters["Simplified Condition"] = col_condition.multiselect("Condition Categories", simplified_conditions, default=["New"])
+
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
         if "Condition" in combined_data.columns:
             filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
@@ -143,4 +150,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
