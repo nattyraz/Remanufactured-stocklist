@@ -4,11 +4,13 @@ from datetime import datetime
 import re  # For regular expression matching
 
 # Constants for Admin Authentication
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "foxway2023"
+admin_username = st.secrets["general"]["ADMIN_USERNAME"]
+admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
+
 
 def check_credentials(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+    return username == admin_username and password == admin_password
+
 
 # Set page configuration
 st.set_page_config(
@@ -35,20 +37,11 @@ def advanced_filter_data_by_search_query(df, query):
     return df
 
 def display_data_page():
-
-    # Assuming you load your single file into a variable called 'single_data'
-    single_data = pd.read_excel('your_single_file.xlsx')
-    
-    # Check if the DataFrame is not empty and the 'Condition' column exists
-    if single_data is not None and not single_data.empty and 'Condition' in single_data.columns:
-        # Create the new 'Grouped Condition' column
-        single_data['Grouped Condition'] = single_data['Condition'].apply(map_condition)
-
     col1, col2 = st.columns([1, 6])
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Refurb stocklist ")
+        st.title("New, Demo & Remanufactured stocklist Lenovo Garantie Original")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -76,7 +69,6 @@ def display_data_page():
 
         
         filters = {}
-        
         if "Brand" in combined_data.columns:
             filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
         if "Category" in combined_data.columns:
@@ -86,7 +78,7 @@ def display_data_page():
         if "Keyboard" in combined_data.columns:
             filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
         if "Condition" in combined_data.columns:
-           filters["Condition"] = col_condition.multiselect("Condition", ["new (01 New,02 Bulk)", "refurbish(08 ref,04 demo,demo,grade A, grade B,Grade C,defekt)", "remanufactured ( silver,bronze,gold)", "premimum(premimum)"])
+            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
         
         for column, selected_values in filters.items():
             if selected_values:
@@ -122,11 +114,11 @@ def admin_page():
         return
 
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-    file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
-    file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
-    file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
+    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
+    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
+    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
     
-    files = [file for file in [file1, file2, file3, file4] if file]
+    files = [file for file in [file1] if file]
     
     if files:
         dataframes = [pd.read_excel(file) for file in files]
@@ -137,6 +129,8 @@ def admin_page():
         st.write(combined_data)
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
+
+
 
 def main():
     st.sidebar.title("Navigation")
@@ -149,5 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
