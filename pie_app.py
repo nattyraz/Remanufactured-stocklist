@@ -65,7 +65,8 @@ def display_data_page(stock_data):
         st.dataframe(stock_data)
 
 def main():
-    data_folder = '/path/to/your/data/folder'  # Update this to your folder path
+    # Assuming the 'data' folder is in the current working directory of your Streamlit application
+    data_folder = 'data'  # Relative path to the data folder
     latest_stock_file = get_latest_stock_file(data_folder)
 
     # Load the stock data from the latest file available
