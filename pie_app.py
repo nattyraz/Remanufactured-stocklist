@@ -11,8 +11,8 @@ st.set_page_config(page_title="Remanufactured Stocklist", page_icon=":bar_chart:
 def get_latest_stock_file(folder_path):
     file_pattern = os.path.join(folder_path, 'Foxway Item Stock Data Idea DCCAS_ROFO *.xlsx')
     matching_files = glob.glob(file_pattern)
-    latest_file = None
-    latest_time = None
+    latest_file = max(matching_files, key=os.path.getctime, default=None)
+    return latest_file
 
     # Match files based on the pattern 'Foxway Item Stock Data Idea DCCAS_ROFO YYYY-MM-DDTHH_MM_SS.xlsx'
     for f in matching_files:
