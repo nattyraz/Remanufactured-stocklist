@@ -7,13 +7,13 @@ import re  # For regular expression matching
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
-def check_credentials(username, password):
-    return username == admin_username and password == admin_password
+# Functions and other elements you had in your code previously
+# (e.g., check_credentials, get_combined_data, advanced_filter_data_by_search_query, and so on)
 
 # Set page configurations
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon="favicon.ico",
+    page_icon=":fox_face:",
     layout="wide"
 )
 
@@ -25,6 +25,10 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
+def check_credentials(username, password):
+    return username == admin_username and password == admin_password
+
+
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
@@ -33,6 +37,8 @@ def advanced_filter_data_by_search_query(df, query):
             pattern = re.compile(sub_query, re.IGNORECASE)
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
+    
+
 
 def display_data_page():
     col1, col2 = st.columns([1, 6])
@@ -97,41 +103,51 @@ def display_data_page():
         st.dataframe(filtered_data[columns_to_display])
 
 # ... (pre-existing code remains unchanged)
+    
 
-def admin_page():
-    st.sidebar.title("Administration")
-    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
-    password = st.sidebar.text_input("Mot de passe", type="password")        
-    
-    if not check_credentials(username, password):
-        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
-        return    
-    
-    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])    
-    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])    
-    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])    
-    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])        
-    
-    files = [file for file in [file1] if file]        
-    
-    if files:
-        dataframes = [pd.read_excel(file) for file in files]
-        combined_data = pd.concat(dataframes)
-        last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
-        st.write("Prévisualisation des données combinées :")
-        st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
 
 def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])        
-    
-    if page == "Affichage des données":
-        display_data_page()
-    else:
-        admin_page()
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        login_container = st.container()
+        with login_container:
+            col1, col2 = st.columns([1, 1], gap="medium")
+            with col1:
+                st.empty()  # Empty column for center alignment
+            with col2:
+                username = st.text_input("Nom d'utilisateur", key="username")
+                password = st.text_input("Mot de passe", type="password", key="password")
+                if st.button("Login"):
+                    if check_credentials(username, password):
+                        st.session_state.logged_in = True
+                        login_container.empty()  # Clear the login form
+                        st.success("Logged in successfully!")
+                    else:
+                        st.error("Incorrect Username/Password")
+
+    if st.session_state.logged_in:
+        st.title("Administration")
+        file1 = st.file_uploader("Importez le fichier:", type=["xlsx"])
+        if file1:
+            # Process the uploaded file here
+            dataframes = [pd.read_excel(file1)]
+            combined_data = pd.concat(dataframes)
+            last_update_date = datetime.now()
+            st.success("The data has been updated successfully!")
+            st.write("Prévisualisation des données combinées :")
+            st.dataframe(combined_data)
+            get_combined_data()['data'] = combined_data
+            get_last_update_date()['date'] = last_update_date
+            
+            # After updating the data, display the data page
+            display_data_page()
+            
+        # Logout button
+        if st.button("Logout"):
+            st.session_state.logged_in = False
+            st.experimental_rerun()  # Rerun the app to show the login form
 
 if __name__ == "__main__":
     main()
