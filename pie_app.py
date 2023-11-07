@@ -5,6 +5,32 @@ import glob
 import re
 from datetime import datetime
 
+# Define a function for paginated display of the dataframe
+def paginated_df_display(dataframe, rows_per_page=30):
+    # Calcul du nombre total de pages
+    num_pages = len(dataframe) // rows_per_page + (1 if len(dataframe) % rows_per_page > 0 else 0)
+    
+    # Ajout d'une boîte de sélection pour choisir le numéro de page
+    page_num = st.selectbox('Select page number:', range(num_pages))
+    
+    # Calcul des indices de début et de fin de la page actuelle
+    start_idx = page_num * rows_per_page
+    end_idx = (page_num + 1) * rows_per_page
+    
+    # Affichage du sous-ensemble du DataFrame correspondant à la page actuelle
+    st.dataframe(dataframe.iloc[start_idx:end_idx])
+
+def display_data_page(df, latest_file_date):
+    # ... votre code existant pour configurer l'interface utilisateur ...
+
+    # Juste avant d'afficher le DataFrame avec st.dataframe(df),
+    # remplacez cette ligne par un appel à la fonction paginated_df_display :
+    if df is not None and not df.empty:
+        # ... votre code existant pour le filtrage ...
+
+        # Affichage paginé du DataFrame
+        paginated_df_display(df, rows_per_page=25)  # Ici, on passe le DataFrame et le nombre de lignes par page.
+
 # Set page configurations
 st.set_page_config(page_title="foxway Stocklist", page_icon="favicon.ico", layout="wide")
 
@@ -86,9 +112,16 @@ def display_data_page(df, latest_file_date):
             "Item Category Code": "Category",
             "Product Group Code": "Size/Format",
             "Condition": "Condition",
-            "Keyboard Language": "Keyboard"
+            "Keyboard Language": "Keyboard",
+            "Software Language": "OS",
+            
         }
         df = df.rename(columns=rename_columns)
+        # If there is data to display
+    if df is not None and not df.empty:
+        # Remove unwanted columns
+        columns_to_remove = ["Kunde land"]  # Specify the columns you want to remove
+        df = df.drop(columns=columns_to_remove, errors='ignore')  # Use errors='ignore' to avoid errors if the column does not exist
 
         # Create filter columns
         col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
