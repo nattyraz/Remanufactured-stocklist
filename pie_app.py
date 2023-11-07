@@ -6,13 +6,13 @@ import re
 from datetime import datetime
 
 # Set page configurations
-st.set_page_config(page_title="Remanufactured Stocklist", page_icon=":bar_chart:", layout="wide")
+st.set_page_config(page_title="foxway Stocklist", page_icon="favicon.ico", layout="wide")
 
 def get_latest_stock_file(folder_path):
     file_pattern = os.path.join(folder_path, 'Foxway Item Stock Data Idea DCCAS_ROFO *.xlsx')
     matching_files = glob.glob(file_pattern)
-    latest_file = max(matching_files, key=os.path.getctime, default=None)
-    return latest_file
+    latest_file = None
+    latest_time = None
 
     # Match files based on the pattern 'Foxway Item Stock Data Idea DCCAS_ROFO YYYY-MM-DDTHH_MM_SS.xlsx'
     for f in matching_files:
@@ -45,57 +45,117 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-def display_data_page(df):
-    st.title("Foxway stocklist")
+def display_data_page(df, latest_file_date):
+    col1, col2, col3 = st.columns([1, 4, 1])
+    with col1:
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
+    with col2:
+        st.title("Foxway stocklist")
+    with col3:
+        st.write(latest_file_date.strftime("%B %d, %Y"))  # Format the date as you like
 
-    # Filtering Logic (Retained from previous version)
-    # Description search box
+    def display_data_page(df, latest_file_date):
+        # ... your existing code ...
+
+        # When you're ready to display the DataFrame:
+        if df is not None and not df.empty:
+            # ... your existing filtering code ...
+
+            # Display the DataFrame, setting a height that can accommodate at least 25 rows
+            # Note: The actual number of rows displayed can vary based on row height and available screen size
+            st.dataframe(df, height=1000)  # Adjust the height as needed to show at least 25 rows
+
+
+    # Search functionality
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
     if search_query:
         df = advanced_filter_data_by_search_query(df, search_query)
 
-    # Checkboxes for 'Brand', 'Category', 'Size/Format', 'Keyboard', 'Condition'
-    filter_columns = {
-        "Brand": "Brand",
-        "Category": "Item Category Code",
-        "Size/Format": "Product Group Code",
-        "Keyboard": "Keyboard Language",
-        "Condition": "Condition",
-    }
-    filters = {col: [] for col in filter_columns.keys()}
-    
-    for name, col in filter_columns.items():
-        if col in df.columns:
-            filters[name] = st.multiselect(f"Filter by {name}:", options=df[col].unique(), default=df[col].unique())
-    
-    # Apply checklist filters
-    for col, selected_options in filters.items():
-        if selected_options:
-            df = df[df[filter_columns[col]].isin(selected_options)]
-    
-    # Show quantities greater than 0 and sort by 'Avail. Qty'
-    df = df[df["Avail. Qty"] > 0]
+    # Filter out rows where 'Avail. Qty' is zero or any of the 'Promo Price' columns are zero
+    df = df[(df['Avail. Qty'] > 0) & 
+            (df['Promo Price EUR'] > 0) & 
+            (df['Promo Price DKK'] > 0) & 
+            (df['Promo Price GBP'] > 0)]
     df = df.sort_values("Avail. Qty", ascending=False)
 
-    # Display the DataFrame
-    st.dataframe(df)
+    # If there is data to display
+    if df is not None and not df.empty:
+        # Rename columns for user-friendliness if needed
+        rename_columns = {
+            "Brand": "Brand",
+            "Item Category Code": "Category",
+            "Product Group Code": "Size/Format",
+            "Condition": "Condition",
+            "Keyboard Language": "Keyboard"
+        }
+        df = df.rename(columns=rename_columns)
+
+        # Create filter columns
+        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
+
+        # Retrieve filter states from session state
+        filters = st.session_state['filter_state']
+
+        # Function to get safe defaults (only those present in current options)
+        def get_safe_defaults(column_name, options):
+            if column_name in filters:
+                return [default for default in filters[column_name] if default in options]
+            return []
+
+        # Create multiselect filters for each column with safe defaults
+        with col_brand:
+            brand_options = list(df["Brand"].unique())
+            filters["Brand"] = st.multiselect("Brand", options=brand_options, default=get_safe_defaults("Brand", brand_options))
+        with col_category:
+            category_options = list(df["Category"].unique())
+            filters["Category"] = st.multiselect("Category", options=category_options, default=get_safe_defaults("Category", category_options))
+        with col_size_format:
+            size_format_options = list(df["Size/Format"].unique())
+            filters["Size/Format"] = st.multiselect("Size/Format", options=size_format_options, default=get_safe_defaults("Size/Format", size_format_options))
+        with col_keyboard:
+            keyboard_options = list(df["Keyboard"].unique())
+            filters["Keyboard"] = st.multiselect("Keyboard", options=keyboard_options, default=get_safe_defaults("Keyboard", keyboard_options))
+        with col_condition:
+            condition_options = list(df["Condition"].unique())
+            filters["Condition"] = st.multiselect("Condition", options=condition_options, default=get_safe_defaults("Condition", condition_options))
+
+        # Update the session state
+        st.session_state['filter_state'] = filters
+
+        # Apply the filters to the dataframe
+        for column, selected_values in filters.items():
+            if selected_values:
+                df = df[df[column].isin(selected_values)]
+
+        # Display the filtered dataframe
+        st.dataframe(df)
+
 
 def main():
-    # The path to the data folder should be the absolute or relative path to the folder
-    # where the Streamlit app has access to your stock data files
+    # Initialize session state for filters if it doesn't exist
+    if 'filter_state' not in st.session_state:
+        st.session_state['filter_state'] = {}
+
     data_folder = 'data/'  # Update this path based on access from your Streamlit app
     latest_stock_file = get_latest_stock_file(data_folder)
 
-    # Load the stock data from the latest file available
-    stock_data = load_stock_data(latest_stock_file)
+    if latest_stock_file:
+        try:
+            # Assuming the file name format is '... YYYY-MM-DDTHH_MM_SS.xlsx'
+            latest_file_date = datetime.strptime(latest_stock_file.split('/')[-1].split(' ')[-1].split('.xlsx')[0], "%Y-%m-%dT%H_%M_%S")
+        except Exception as e:
+            latest_file_date = datetime.now()  # Default to current time if date extraction fails
+            st.error(f"Error extracting date from file name: {e}")
 
-    if stock_data is not None:
-        # Display the stock data using the display_data_page function
-        display_data_page(stock_data)
+        stock_data = load_stock_data(latest_stock_file)
+
+        if stock_data is not None:
+            # Pass the extracted date to the display function
+            display_data_page(stock_data, latest_file_date)
+        else:
+            st.error("No stock data file found.")
     else:
-        st.error("No stock data file found for today.")
-
-# The advanced_filter_data_by_search_query and display_data_page functions should be here.
+        st.error("Could not find the latest stock file.")
 
 if __name__ == "__main__":
     main()
