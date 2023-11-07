@@ -83,7 +83,7 @@ def display_data_page(df):
 def main():
     # The path to the data folder should be the absolute or relative path to the folder
     # where the Streamlit app has access to your stock data files
-    data_folder = '/main/data'  # Update this path based on access from your Streamlit app
+    data_folder = 'main/data'  # Update this path based on access from your Streamlit app
     latest_stock_file = get_latest_stock_file(data_folder)
 
     # Load the stock data from the latest file available
