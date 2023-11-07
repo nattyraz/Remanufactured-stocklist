@@ -36,55 +36,67 @@ def display_data_page():
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("Foxway stocklist")
-    
+
     combined_data = get_combined_data()['data']
-    
+
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
-    
+
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
-    
+
     if combined_data is not None and not combined_data.empty:
         combined_data = combined_data[combined_data["Avail. Qty"] > 0].sort_values(by="Avail. Qty", ascending=False)
-
-        # Add filters back into the code
+        
+        # Define filters
         filters = {}
+        filter_columns = ['Brand', 'Category', 'Size/Format', 'Keyboard', 'Condition']
+        available_filters = [col for col in filter_columns if col in combined_data.columns]
         
-        if "Brand" in combined_data.columns:
-            filters["Brand"] = st.sidebar.multiselect("Brand", list(combined_data["Brand"].unique()))
-        if "Category" in combined_data.columns:
-            filters["Category"] = st.sidebar.multiselect("Category", list(combined_data["Category"].unique()))
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = st.sidebar.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
-        if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = st.sidebar.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-        if "Condition" in combined_data.columns:
-            filters["Condition"] = st.sidebar.multiselect("Condition", list(combined_data["Condition"].unique()))
-        
-        # Apply filters to the dataframe
-        for column, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
+        # Display filters and filter data
+        for f in available_filters:
+            selected = st.sidebar.multiselect(f"Filter by {f}", options=list(combined_data[f].unique()), default=None)
+            if selected:
+                filters[f] = selected
+                combined_data = combined_data[combined_data[f].isin(selected)]
 
-        # Displaying all currency columns
+        # Display the DataFrame with all currency columns if they exist in combined_data
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
+        for col in currency_columns:
+            if col not in combined_data.columns:
+                currency_columns.remove(col)
         
-        # Define columns to display. Ensure these column names match your dataframe's column names
         columns_to_display = [col for col in combined_data.columns if col not in currency_columns] + currency_columns
-        
-        # Increase the max rows to display in the dataframe
-        st.dataframe(combined_data[columns_to_display], height=600)  # You can adjust the height as needed
+        st.dataframe(combined_data[columns_to_display], height=600) # Increase dataframe height
+
+def admin_page():
+    st.sidebar.title("Administration")
+    username = st.sidebar.text_input("Username", type="default")
+    password = st.sidebar.text_input("Password", type="password")
+
+    if check_credentials(username, password):
+        st.success("Authentication successful.")
+        # Logic for file upload and processing
+        file = st.file_uploader("Upload a file:", type="xlsx")
+        if file is not None:
+            df = pd.read_excel(file)
+            combined_data = get_combined_data()['data']
+            if combined_data is not None:
+                combined_data = pd.concat([combined_data, df])
+            else:
+                combined_data = df
+            st.write(combined_data)
+            get_combined_data()['data'] = combined_data
+    else:
+        st.sidebar.error("Invalid credentials.")
 
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
+    page = st.sidebar.radio("Choose a page:", ["Data View", "Admin"])
 
-    if page == "Affichage des données":
+    if page == "Data View":
         display_data_page()
-    else:
+    elif page == "Admin":
         admin_page()
 
 if __name__ == "__main__":
     main()
-
-
