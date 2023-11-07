@@ -1,33 +1,32 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import os
+import glob
 import re  # For regular expression matching
-
-# Constants for Admin Authentication
-admin_username = st.secrets["general"]["ADMIN_USERNAME"]
-admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
-
-# Functions and other elements you had in your code previously
-# (e.g., check_credentials, get_combined_data, advanced_filter_data_by_search_query, and so on)
+from datetime import datetime
 
 # Set page configurations
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon=":fox_face:",
+    page_icon=":bar_chart:",
     layout="wide"
 )
 
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def get_combined_data():
-    return {'data': None}
+def get_latest_stock_file(folder_path):
+    # Construct the pattern to match files with the date format 'stocklist_YYYY-MM-DD.xlsx'
+    file_pattern = os.path.join(folder_path, 'stocklist_*.xlsx')
+    # Find all files matching the pattern
+    matching_files = glob.glob(file_pattern)
+    # Get the latest file based on the file naming convention
+    latest_file = max(matching_files, key=os.path.getctime, default=None)
+    return latest_file
 
-@st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def get_last_update_date():
-    return {'date': None}
-
-def check_credentials(username, password):
-    return username == admin_username and password == admin_password
-
+def load_stock_data(file_path):
+    # Load the data from the file
+    if file_path and os.path.exists(file_path):
+        return pd.read_excel(file_path)
+    else:
+        return None
 
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
@@ -37,117 +36,46 @@ def advanced_filter_data_by_search_query(df, query):
             pattern = re.compile(sub_query, re.IGNORECASE)
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
-    
 
+def display_data_page(stock_data):
+    st.title("Foxway stocklist")
 
-def display_data_page():
-    col1, col2 = st.columns([1, 6])
-    with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
-    with col2:
-        st.title("Foxway stocklist")        
-    
-    combined_data = get_combined_data()['data']
-    last_update_date = get_last_update_date()['date']        
-    
-    if last_update_date:
-        st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    search_query = st.text_input("Search by description or No. (use the * in your searches):")        
-    
+    # Allow users to search the data
+    search_query = st.text_input("Search by description or No. (use the * in your searches):")
     if search_query:
-        combined_data = advanced_filter_data_by_search_query(combined_data, search_query)    
-    
-    if combined_data is not None and not combined_data.empty:
-        # Rename columns
+        stock_data = advanced_filter_data_by_search_query(stock_data, search_query)
+
+    if stock_data is not None and not stock_data.empty:
+        # Example rename columns
         rename_columns = {
             "Brand": "Brand",
             "Item Category Code": "Category",
             "Product Group Code": "Size/Format",
             "Condition": "Condition",
             "Keyboard Language": "Keyboard",
+            # Add more column rename mapping if necessary
         }
-        combined_data = combined_data.rename(columns=rename_columns)
-        
-        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)                
-        
-        filters = {}
-        if "Brand" in combined_data.columns:
-            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
-        if "Category" in combined_data.columns:
-            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
-        if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
-        if "Condition" in combined_data.columns:
-            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))                
-        
-        for column, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]                
-        
-        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-                        
-        filtered_data = combined_data[
-            (combined_data["Avail. Qty"] > 0)
-        ]                
-        # Sort the data by 'Avail. Qty' in descending order so that highest quantities are on top
-        filtered_data = filtered_data.sort_values(by="Avail. Qty", ascending=False)
-        
-        # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "Brand"]
-        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')                
-        
-        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns] + currency_columns
-        st.dataframe(filtered_data[columns_to_display])
+        stock_data = stock_data.rename(columns=rename_columns)
 
-# ... (pre-existing code remains unchanged)
-    
+        # Assuming 'Avail. Qty' is the column to show available quantity in your DataFrame
+        # and you want to sort by this column in descending order
+        stock_data = stock_data.sort_values(by='Avail. Qty', ascending=False)
 
+        # Display the DataFrame
+        st.dataframe(stock_data)
 
 def main():
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
+    data_folder = '/path/to/your/data/folder'  # Update this to your folder path
+    latest_stock_file = get_latest_stock_file(data_folder)
 
-    if not st.session_state.logged_in:
-        login_container = st.container()
-        with login_container:
-            col1, col2 = st.columns([1, 1], gap="medium")
-            with col1:
-                st.empty()  # Empty column for center alignment
-            with col2:
-                username = st.text_input("Nom d'utilisateur", key="username")
-                password = st.text_input("Mot de passe", type="password", key="password")
-                if st.button("Login"):
-                    if check_credentials(username, password):
-                        st.session_state.logged_in = True
-                        login_container.empty()  # Clear the login form
-                        st.success("Logged in successfully!")
-                    else:
-                        st.error("Incorrect Username/Password")
+    # Load the stock data from the latest file available
+    stock_data = load_stock_data(latest_stock_file)
 
-    if st.session_state.logged_in:
-        st.title("Administration")
-        file1 = st.file_uploader("Importez le fichier:", type=["xlsx"])
-        if file1:
-            # Process the uploaded file here
-            dataframes = [pd.read_excel(file1)]
-            combined_data = pd.concat(dataframes)
-            last_update_date = datetime.now()
-            st.success("The data has been updated successfully!")
-            st.write("Prévisualisation des données combinées :")
-            st.dataframe(combined_data)
-            get_combined_data()['data'] = combined_data
-            get_last_update_date()['date'] = last_update_date
-            
-            # After updating the data, display the data page
-            display_data_page()
-            
-        # Logout button
-        if st.button("Logout"):
-            st.session_state.logged_in = False
-            st.experimental_rerun()  # Rerun the app to show the login form
+    if stock_data is not None:
+        # Display the stock data using the display_data_page function
+        display_data_page(stock_data)
+    else:
+        st.error("No stock data file found for today.")
 
 if __name__ == "__main__":
     main()
