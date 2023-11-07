@@ -86,6 +86,8 @@ def display_data_page():
         filtered_data = combined_data[
             (combined_data["Avail. Qty"] > 0)
         ]                
+        # Sort the data by 'Avail. Qty' in descending order so that highest quantities are on top
+        filtered_data = filtered_data.sort_values(by="Avail. Qty", ascending=False)
         
         # Remove unwanted columns
         columns_to_remove = ["Kunde land", "Brand"]
