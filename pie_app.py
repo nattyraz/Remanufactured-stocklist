@@ -33,7 +33,7 @@ def advanced_filter_data_by_search_query(df, query):
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("logo_foxway.png", width=100)
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("Foxway stocklist")
     
