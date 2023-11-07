@@ -41,7 +41,7 @@ def load_stock_data(file_path):
 
 def main():
     # If you're using Streamlit sharing or Streamlit for Teams, you might need to adjust the path to where your files are stored.
-    data_folder = '/data'  # Absolute path to the data folder
+    data_folder = '/main/data'  # Absolute path to the data folder
     latest_stock_file = get_latest_stock_file(data_folder)
 
     # Load the stock data from the latest file available
