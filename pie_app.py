@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import re
+import re  # For regular expression matching
 
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
@@ -21,6 +21,10 @@ st.set_page_config(
 def get_combined_data():
     return {'data': None}
 
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def get_last_update_date():
+    return {'date': None}
+
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
@@ -36,37 +40,43 @@ def display_data_page():
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
         st.title("Foxway stocklist")
-
+    
     combined_data = get_combined_data()['data']
-
+    last_update_date = get_last_update_date()['date']
+    
+    if last_update_date:
+        st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
-
+    
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
+        # Tri par stock du plus grand au plus petit et filtre pour n'afficher que les lignes avec des quantités disponibles
         combined_data = combined_data[combined_data["Avail. Qty"] > 0].sort_values(by="Avail. Qty", ascending=False)
         
-        # Define filters
+        # Configurer les filtres
         filters = {}
-        filter_columns = ['Brand', 'Category', 'Size/Format', 'Keyboard', 'Condition']
-        available_filters = [col for col in filter_columns if col in combined_data.columns]
+        columns_for_filters = ['Brand', 'Category', 'Size/Format', 'Keyboard', 'Condition']
+        for col in columns_for_filters:
+            filters[col] = st.multiselect(f"Filter by {col}", options=list(combined_data[col].unique()))
         
-        # Display filters and filter data
-        for f in available_filters:
-            selected = st.sidebar.multiselect(f"Filter by {f}", options=list(combined_data[f].unique()), default=None)
-            if selected:
-                filters[f] = selected
-                combined_data = combined_data[combined_data[f].isin(selected)]
+        # Appliquer les filtres au DataFrame
+        for key, value in filters.items():
+            if value:
+                combined_data = combined_data[combined_data[key].isin(value)]
 
-        # Display the DataFrame with all currency columns if they exist in combined_data
+        # Supprimer les colonnes indésirables
+        columns_to_remove = ["Kunde land", "Brand"]  # Ajoutez d'autres noms de colonnes à supprimer si nécessaire
+        combined_data = combined_data.drop(columns=columns_to_remove, errors='ignore')
+
+        # Affichage des trois monnaies et suppression du filtre de devise
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        for col in currency_columns:
-            if col not in combined_data.columns:
-                currency_columns.remove(col)
-        
         columns_to_display = [col for col in combined_data.columns if col not in currency_columns] + currency_columns
-        st.dataframe(combined_data[columns_to_display], height=600) # Increase dataframe height
+        st.dataframe(combined_data[columns_to_display], height=700)  # Vous pouvez ajuster la hauteur selon vos besoins
+
+# ... (reste du code pour admin_page et main inchangé)
 
 def admin_page():
     st.sidebar.title("Administration")
