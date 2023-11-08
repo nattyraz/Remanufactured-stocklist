@@ -6,9 +6,9 @@ import re
 from datetime import datetime
 
 # Set page configurations to use the wide layout
-st.set_page_config(page_title="foxway Stocklist", page_icon="favicon.ico", layout="wide")
+st.set_page_config(page_title="Foxway Stocklist", page_icon="favicon.ico", layout="wide")
 
-def paginated_df_display(dataframe, rows_per_page=30):
+def paginated_df_display(dataframe, rows_per_page=25):
     num_pages = len(dataframe) // rows_per_page + (1 if len(dataframe) % rows_per_page > 0 else 0)
     page_num = st.selectbox('Select page number:', range(num_pages))
     start_idx = page_num * rows_per_page
@@ -83,12 +83,25 @@ def display_data_page(df, latest_file_date):
            st.error("The column 'Kunde land' is still present.")
         else:
            st.success("The column 'Kunde land' has been successfully removed.")
-        
+
+        # Make sure to set use_container_width to True to use the full screen width
         paginated_df_display(df, rows_per_page=25)
 
 def main():
+    # Set default filter values
+    default_filters = {
+        'Category': ['Notebook', 'PC']  # Assuming 'Category' is the correct filter name
+        # Add other default filters if necessary
+    }
+
+    # Initialize session state for filters if it doesn't exist
     if 'filter_state' not in st.session_state:
-        st.session_state['filter_state'] = {}
+        st.session_state['filter_state'] = default_filters
+    else:
+        # Update only if the filter is not already set by the user
+        for key, value in default_filters.items():
+            if key not in st.session_state['filter_state']:
+                st.session_state['filter_state'][key] = value
 
     data_folder = 'data/'  # Update this path based on access from your Streamlit app
     latest_stock_file = get_latest_stock_file(data_folder)
@@ -103,13 +116,18 @@ def main():
         stock_data = load_stock_data(latest_stock_file)
 
         if stock_data is not None:
+            # Apply the filters to the dataframe
+            for filter_key, filter_values in st.session_state['filter_state'].items():
+                if filter_values:
+                    stock_data = stock_data[stock_data[filter_key].isin(filter_values)]
+
+            # Now that the dataframe is filtered, display it
             display_data_page(stock_data, latest_file_date)
         else:
             st.error("No stock data file found.")
     else:
         st.error("Could not find the latest stock file.")
 
-# Run the main function
 if __name__ == "__main__":
     main()
 
