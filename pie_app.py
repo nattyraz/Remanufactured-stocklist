@@ -160,6 +160,12 @@ def display_data_page(df, latest_file_date):
             if selected_values:
                 df = df[df[column].isin(selected_values)]
 
+        if "Kunde land" in df.columns:
+           st.error("The column 'Kunde land' is still present.")
+        else:
+           st.success("The column 'Kunde land' has been successfully removed.")
+
+        
         # Display the filtered dataframe
         st.dataframe(df)
 
