@@ -87,22 +87,6 @@ def display_data_page(df, latest_file_date):
         paginated_df_display(df, rows_per_page=25)
 
 def main():
-
-    # Set default filter values
-    default_filters = {
-        'Category': ['Notebook', 'PC']  # Assuming 'Category' is the correct filter name
-        # Add other default filters if necessary
-    }
-
-    # Initialize session state for filters if it doesn't exist
-    if 'filter_state' not in st.session_state:
-        st.session_state['filter_state'] = default_filters
-    else:
-        # Update only if the filter is not already set by the user
-        for key, value in default_filters.items():
-            if key not in st.session_state['filter_state']:
-                st.session_state['filter_state'][key] = value
-                
     if 'filter_state' not in st.session_state:
         st.session_state['filter_state'] = {}
 
@@ -123,3 +107,9 @@ def main():
         else:
             st.error("No stock data file found.")
     else:
+        st.error("Could not find the latest stock file.")
+
+# Run the main function
+if __name__ == "__main__":
+    main()
+
