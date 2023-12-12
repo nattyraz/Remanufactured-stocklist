@@ -1,5 +1,6 @@
-[client]
-show_menu="off"
+# [client]
+# show_menu="off"
+
 [theme]
 base = "dark"
 primaryColor = "#E694FF"
@@ -7,6 +8,7 @@ backgroundColor = "#420171"
 secondaryBackgroundColor = "#310452"
 textColor = "#DCDCDC"
 font = "sans-serif"
-[deprecation]
-showfileUploaderEncoding = false
+
+# [deprecation]
+# showfileUploaderEncoding = false
 
