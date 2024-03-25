@@ -92,7 +92,7 @@ def display_data_page():
         filtered_data = combined_data[
             (combined_data[selected_currency].notna()) & 
             (combined_data[selected_currency] != 0) &
-            (combined_data["Avail. Qty"] > 0)
+            (combined_data["Lager"] > 0)
         ]
         
         # Remove unwanted columns
