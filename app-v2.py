@@ -87,10 +87,10 @@ def display_data_page():
         #currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
        # selected_currency = st.selectbox("Select a currency:", currency_columns)
         
-      #  filtered_data = combined_data[
-          #  (combined_data[selected_currency].notna()) & 
-           # (combined_data[selected_currency] != 0) &
-           # (combined_data["Avail. Qty"] > 0)
+        filtered_data = combined_data[
+            (combined_data[selected_currency].notna()) & 
+            (combined_data[selected_currency] != 0) &
+            (combined_data["Avail. Qty"] > 0)
         ]
         
         # Remove unwanted columns
