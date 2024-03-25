@@ -7,10 +7,8 @@ import re  # For regular expression matching
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
-
 def check_credentials(username, password):
     return username == admin_username and password == admin_password
-
 
 # Set page configuration
 st.set_page_config(
@@ -41,7 +39,7 @@ def display_data_page():
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Foxway stocklist")
+        st.title("Company Stocklist")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -55,106 +53,61 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        # Rename columns
+        # Rename columns including 'Web URL' to 'Webshop'
         rename_columns = {
-            "Brand": "Brand",
-            "Item Category Code": "Category",
-            "Product Group Code": "Size/Format",
+            "Keyboard Language": "Keyboard",
             "Condition": "Condition",
-            "Keyboard Language": "Keyboard"
+            "Product Group Code": "Size/Format",
+            "Item Category Code": "Category",
+            "Web URL": "Webshop"
         }
         combined_data = combined_data.rename(columns=rename_columns)
 
-        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
-
+        col_keyboard, col_condition, col_size_format, col_category = st.columns(4)
         
         filters = {}
-        if "Brand" in combined_data.columns:
-            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
-        if "Category" in combined_data.columns:
-            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
         if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
+            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", combined_data["Keyboard"].unique())
         if "Condition" in combined_data.columns:
-            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
-        
+            filters["Condition"] = col_condition.multiselect("Condition", combined_data["Condition"].unique())
+        if "Size/Format" in combined_data.columns:
+            filters["Size/Format"] = col_size_format.multiselect("Size/Format", combined_data["Size/Format"].unique())
+        if "Category" in combined_data.columns:
+            filters["Category"] = col_category.multiselect("Category", combined_data["Category"].unique())
+
         for column, selected_values in filters.items():
             if selected_values:
                 combined_data = combined_data[combined_data[column].isin(selected_values)]
-
         
-        selected_currency = "Eksport Pris"
-        #currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-        #selected_currency = st.selectbox("Select a currency:", currency_columns)
-        
-        filtered_data = combined_data[
-            (combined_data[selected_currency].notna()) & 
-            (combined_data[selected_currency] != 0) &
-            (combined_data["Lager"] > 0)
-        ]
-        
-        # Remove unwanted columns
-        columns_to_remove = ["Kunde land", "Brand"]
-        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
-        
-        columns_to_display = [col for col in filtered_data.columns if col != "Eksport Pris"]
-        columns_to_display.append(selected_currency)
-        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
-        st.dataframe(s)
-
-# ... (pre-existing code remains unchanged)
-# Vérification des colonnes après le chargement du DataFrame
-try:
-    loaded_columns = combined_data.columns.tolist()
-    print("Loaded columns:", loaded_columns)
-    # Replace the following list with your expected column names
-    expected_columns = ["Number", "Description", "Item Category Code", "Product Group Code", "Software Language", "Keyboard Language", "Condition", "Warranty", "Stock", "Export Price", "Web URL"]
-    print("Expected columns:", expected_columns)
-    missing_columns = [col for col in expected_columns if col not in loaded_columns]
-    if missing_columns:
-        print("Missing columns:", missing_columns)
-        st.error(f"The following columns are missing in the loaded file: {missing_columns}")
-    else:
-        print("All expected columns are present.")
-except Exception as e:
-    st.error(f"An error occurred while checking the columns: {e}")
-
+        # Displaying the DataFrame with clickable 'Webshop' links
+        combined_data['Webshop'] = combined_data['Webshop'].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
+        st.write(combined_data.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 def admin_page():
     st.sidebar.title("Administration")
-    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
-    password = st.sidebar.text_input("Mot de passe", type="password")
+    username = st.sidebar.text_input("Username", type="default")
+    password = st.sidebar.text_input("Password", type="password")
     
     if not check_credentials(username, password):
-        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+        st.sidebar.warning("Incorrect credentials. Please try again.")
         return
 
-    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
-    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
-    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
+    file1 = st.file_uploader("Upload file:", type=["xlsx"])
     
-    files = [file for file in [file1] if file]
-    
-    if files:
-        dataframes = [pd.read_excel(file) for file in files]
-        combined_data = pd.concat(dataframes)
+    if file1:
+        combined_data = pd.read_excel(file1)
         last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
-        st.write("Prévisualisation des données combinées :")
+        st.success("Data has been updated successfully!")
+        st.write("Preview of combined data:")
         st.write(combined_data)
         get_combined_data()['data'] = combined_data
         get_last_update_date()['date'] = last_update_date
 
-
-
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
+    page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
     
-    if page == "Affichage des données":
+    if page == "Data Display":
         display_data_page()
     else:
         admin_page()
