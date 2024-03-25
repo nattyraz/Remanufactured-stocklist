@@ -103,6 +103,22 @@ def display_data_page():
         st.dataframe(s)
 
 # ... (pre-existing code remains unchanged)
+# Vérification des colonnes après le chargement du DataFrame
+try:
+    loaded_columns = combined_data.columns.tolist()
+    print("Loaded columns:", loaded_columns)
+    # Replace the following list with your expected column names
+    expected_columns = ["Number", "Description", "Item Category Code", "Product Group Code", "Software Language", "Keyboard Language", "Condition", "Warranty", "Stock", "Export Price", "Web URL"]
+    print("Expected columns:", expected_columns)
+    missing_columns = [col for col in expected_columns if col not in loaded_columns]
+    if missing_columns:
+        print("Missing columns:", missing_columns)
+        st.error(f"The following columns are missing in the loaded file: {missing_columns}")
+    else:
+        print("All expected columns are present.")
+except Exception as e:
+    st.error(f"An error occurred while checking the columns: {e}")
+
 
 def admin_page():
     st.sidebar.title("Administration")
