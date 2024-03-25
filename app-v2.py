@@ -83,9 +83,11 @@ def display_data_page():
         for column, selected_values in filters.items():
             if selected_values:
                 combined_data = combined_data[combined_data[column].isin(selected_values)]
+
         
+        selected_currency = "Eksport Pris"
         #currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
-       # selected_currency = st.selectbox("Select a currency:", currency_columns)
+        #selected_currency = st.selectbox("Select a currency:", currency_columns)
         
         filtered_data = combined_data[
             (combined_data[selected_currency].notna()) & 
