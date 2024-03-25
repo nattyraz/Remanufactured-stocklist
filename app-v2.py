@@ -99,7 +99,7 @@ def display_data_page():
         columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
         
-        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
+        columns_to_display = [col for col in filtered_data.columns if col != "Eksport Pris"]
         columns_to_display.append(selected_currency)
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
