@@ -48,7 +48,7 @@ def paginate_dataframe(df, page_size):
     return df.iloc[start_idx:end_idx]
 
 def customize_dataframe_display(df):
-    # Placeholder function for DataFrame customization
+    # Placeholder for DataFrame customization logic
     return df
 
 def display_data_page():
@@ -63,39 +63,34 @@ def display_data_page():
     
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
+    if combined_data is None or combined_data.empty:
+        st.warning("Aucune donnée chargée. Veuillez télécharger des données via la page d'administration.")
+        return
+
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
     
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    apply_filters = st.checkbox("Apply filters")
+    apply_filters = st.checkbox("Apply filters", value=True)  # Set default to True to display data immediately
 
-    if combined_data is not None and not combined_data.empty and apply_filters:
+    if apply_filters:
         combined_data = customize_dataframe_display(combined_data)
-        paginated_data = paginate_dataframe(combined_data, 10)
-        st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
-
-def load_excel_data():
-    file_path = '/mnt/data/Vareoversigt Udvidet DCCAS_ROFO 2024-03-27T12_13_05.xlsx'
-    try:
-        df = pd.read_excel(file_path)
-        get_combined_data()['data'] = df
-        get_last_update_date()['date'] = datetime.now()
-        st.success("Le fichier Excel a été chargé avec succès.")
-    except Exception as e:
-        st.error(f"Une erreur s'est produite lors du chargement du fichier Excel : {e}")
+        
+    paginated_data = paginate_dataframe(combined_data, 10)
+    st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
 
 def process_admin_file_upload():
     uploaded_file = st.file_uploader("Téléchargez le fichier de stock:", type=["xlsx"])
     if uploaded_file is not None:
         try:
             dataframe = pd.read_excel(uploaded_file)
-            st.write("Aperçu des données chargées :")
-            st.dataframe(dataframe)
             get_combined_data()['data'] = dataframe
             get_last_update_date()['date'] = datetime.now()
             st.success("Le fichier de stock a été téléchargé et traité avec succès.")
+            st.write("Aperçu des données chargées :")
+            st.dataframe(dataframe)
         except Exception as e:
             st.error(f"Une erreur s'est produite lors du traitement du fichier : {e}")
 
@@ -107,18 +102,12 @@ def admin_page():
     if st.sidebar.button("Connexion"):
         if check_credentials(username, password):
             st.session_state['admin_logged_in'] = True
+            process_admin_file_upload()
         else:
             st.sidebar.error("Identifiants incorrects. Veuillez réessayer.")
             st.session_state['admin_logged_in'] = False
 
-    if st.session_state.get('admin_logged_in', False):
-        process_admin_file_upload()
-    else:
-        st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
-
 def main():
-    load_excel_data()  # Chargement des données Excel au démarrage de l'application.
-    
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
     
