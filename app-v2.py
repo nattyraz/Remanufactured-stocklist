@@ -47,8 +47,19 @@ def paginate_dataframe(df, page_size):
     end_idx = (page_num + 1) * page_size
     return df.iloc[start_idx:end_idx]
 
-def customize_dataframe_display(df):
-    # Placeholder for DataFrame customization logic
+def display_filters(df):
+    filters = {}
+    # Add or remove filter columns as needed
+    for column in df.columns:
+        unique_values = pd.unique(df[column])
+        selected_values = st.sidebar.multiselect(f'Filter by {column}:', options=unique_values, default=list(unique_values))
+        filters[column] = selected_values
+    return filters
+
+def apply_filters(df, filters):
+    for col_name, selected_options in filters.items():
+        if selected_options:
+            df = df[df[col_name].isin(selected_options)]
     return df
 
 def display_data_page():
@@ -73,12 +84,10 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    apply_filters = st.checkbox("Apply filters", value=True)  # Set default to True to display data immediately
-
-    if apply_filters:
-        combined_data = customize_dataframe_display(combined_data)
-        
-    paginated_data = paginate_dataframe(combined_data, 10)
+    filters = display_filters(combined_data)
+    filtered_data = apply_filters(combined_data, filters)
+    
+    paginated_data = paginate_dataframe(filtered_data, 10)
     st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
 
 def process_admin_file_upload():
