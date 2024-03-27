@@ -10,7 +10,7 @@ admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon=":file_folder:",
+    page_icon="favicon.ico",
     layout="wide"
 )
 
