@@ -3,17 +3,19 @@ import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
 
-# Constants for Admin Authentication
-admin_username = st.secrets["general"]["ADMIN_USERNAME"]
-admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon="favicon.ico",
+    page_icon=":file_folder:",
     layout="wide"
 )
 
+# Function to check admin credentials
+def check_credentials(username, password):
+    # Adjust the method of storing and comparing credentials as necessary
+    return username == st.secrets["general"]["ADMIN_USERNAME"] and password == st.secrets["general"]["ADMIN_PASSWORD"]
+
+# Decorator for caching data loading
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
@@ -22,6 +24,7 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
+# Function for advanced data filtering based on search query
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
@@ -31,6 +34,7 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
+# Pagination functionality
 def paginate_dataframe(df, page_size):
     page_num = st.session_state.get('page_num', 0)
     if 'next' in st.session_state:
@@ -44,12 +48,13 @@ def paginate_dataframe(df, page_size):
     end_idx = (page_num + 1) * page_size
     return df.iloc[start_idx:end_idx]
 
+# Displaying data with options for filtering and pagination
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)  # Replace with your logo URL
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Your Stocklist")
+        st.title("Stocklist Dashboard")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -65,49 +70,17 @@ def display_data_page():
     apply_filters = st.checkbox("Apply filters")
 
     if combined_data is not None and not combined_data.empty and apply_filters:
-        # Renaming columns including making links clickable
-        combined_data = combined_data.rename(columns={
-            "Produktgruppekode": "Size/Format",
-            "Varekategorikode": "Category",
-            "Web URL": "Webshop",
-            "Keyboard Language": "Keyboard",
-            "Condition": "Condition"
-        })
-        combined_data['Webshop'] = combined_data['Webshop'].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
-
-        # Excluding specific filters
-        exclude_filters = ["Eksport Pris", "Lager", "Beskrivelse"]
-
-        # Applying filters
-        filters_widget_cols = st.columns(len(combined_data.columns) // 5 + 1)
-        filters = {}
-        for i, col in enumerate(combined_data.columns):
-            if col not in ["Webshop"] + exclude_filters:  # Exclude the clickable links and specific filters from filters
-                filters[col] = filters_widget_cols[i % len(filters_widget_cols)].multiselect(f"Filter by {col}", options=combined_data[col].unique())
-
-        for col, selected_values in filters.items():
-            if selected_values:
-                combined_data = combined_data[combined_data[col].isin(selected_values)]
-        
+        # Customizing DataFrame display
+        combined_data = customize_dataframe_display(combined_data)
         # Paginating the filtered data
-        page_size = 10  # Adjust the page size as needed
+        page_size = 10
         paginated_data = paginate_dataframe(combined_data, page_size)
-
         # Displaying the paginated and filtered data
         st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
-        
         # Pagination buttons
-        col1, col2, _ = st.columns([1,1,6])
-        with col1:
-            st.button("Previous", on_click=lambda: st.session_state.update({"prev": True}))
-        with col2:
-            st.button("Next", on_click=lambda: st.session_state.update({"next": True}))
-    elif not apply_filters and combined_data is not None and not combined_data.empty:
-        # Show the DataFrame without filters
-        st.dataframe(combined_data)
+        pagination_buttons()
 
-# Your existing code for admin_page and main functions...
-
+# Admin page for uploading and processing the stock file
 def admin_page():
     st.sidebar.title("Administration")
     username = st.sidebar.text_input("Nom d'utilisateur", key="username")
@@ -116,39 +89,24 @@ def admin_page():
     if st.sidebar.button("Connexion"):
         if check_credentials(username, password):
             st.session_state['admin_logged_in'] = True
+            st.sidebar.success("Connexion réussie!")
         else:
-            st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+            st.sidebar.error("Identifiants incorrects. Veuillez réessayer.")
             st.session_state['admin_logged_in'] = False
 
     if st.session_state.get('admin_logged_in', False):
-        uploaded_file = st.file_uploader("Téléchargez le fichier de stock:", type=["xlsx"])
-        if uploaded_file is not None:
-            # Process the file
-            try:
-                # Assuming the uploaded file is an Excel file
-                dataframe = pd.read_excel(uploaded_file)
-                # Assuming you want to display the dataframe (you can remove this if not needed)
-                st.write("Aperçu des données chargées :")
-                st.write(dataframe)
-                
-                # Update the combined data and last update date
-                get_combined_data()['data'] = dataframe
-                get_last_update_date()['date'] = datetime.now()
-
-                st.success("Le fichier de stock a été téléchargé et traité avec succès.")
-            except Exception as e:
-                st.error(f"Une erreur s'est produite lors du traitement du fichier : {e}")
+        process_admin_file_upload()
     else:
         st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
 
-
+# Main function to control app layout
 def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
     
     if page == "Data Display":
         display_data_page()
-    else:
+    elif page == "Administration":
         admin_page()
 
 if __name__ == "__main__":
