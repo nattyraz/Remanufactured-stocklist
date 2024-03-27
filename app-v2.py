@@ -47,21 +47,6 @@ def paginate_dataframe(df, page_size):
     end_idx = (page_num + 1) * page_size
     return df.iloc[start_idx:end_idx]
 
-def display_filters(df):
-    filters = {}
-    # Add or remove filter columns as needed
-    for column in df.columns:
-        unique_values = pd.unique(df[column])
-        selected_values = st.sidebar.multiselect(f'Filter by {column}:', options=unique_values, default=list(unique_values))
-        filters[column] = selected_values
-    return filters
-
-def apply_filters(df, filters):
-    for col_name, selected_options in filters.items():
-        if selected_options:
-            df = df[df[col_name].isin(selected_options)]
-    return df
-
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -84,10 +69,24 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    filters = display_filters(combined_data)
-    filtered_data = apply_filters(combined_data, filters)
-    
-    paginated_data = paginate_dataframe(filtered_data, 10)
+    # Display filters for specific columns
+    if combined_data is not None and not combined_data.empty:
+        filters = {}
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            filters['Varekategorikode'] = st.multiselect('Varekategorikode:', options=pd.unique(combined_data['Varekategorikode']), default=pd.unique(combined_data['Varekategorikode']))
+        with col2:
+            filters['Produktgruppekode'] = st.multiselect('Produktgruppekode:', options=pd.unique(combined_data['Produktgruppekode']), default=pd.unique(combined_data['Produktgruppekode']))
+        with col3:
+            filters['Keyboard Sprog'] = st.multiselect('Keyboard Sprog:', options=pd.unique(combined_data['Keyboard Sprog']), default=pd.unique(combined_data['Keyboard Sprog']))
+        with col4:
+            filters['Condition'] = st.multiselect('Condition:', options=pd.unique(combined_data['Condition']), default=pd.unique(combined_data['Condition']))
+        
+        for column, selected_options in filters.items():
+            if selected_options:
+                combined_data = combined_data[combined_data[column].isin(selected_options)]
+        
+    paginated_data = paginate_dataframe(combined_data, 10)
     st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
 
 def process_admin_file_upload():
