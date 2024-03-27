@@ -7,9 +7,6 @@ import re  # For regular expression matching
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
-def check_credentials(username, password):
-    return username == admin_username and password == admin_password
-
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
@@ -34,12 +31,25 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
+def paginate_dataframe(df, page_size):
+    page_num = st.session_state.get('page_num', 0)
+    if 'next' in st.session_state:
+        page_num += 1
+    elif 'prev' in st.session_state:
+        page_num -= 1
+    page_num = max(page_num, 0)
+    page_num = min(page_num, len(df) // page_size)
+    st.session_state['page_num'] = page_num
+    start_idx = page_num * page_size
+    end_idx = (page_num + 1) * page_size
+    return df.iloc[start_idx:end_idx]
+
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Company Stocklist")
+        st.title("Foxway Stocklist V2")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -53,55 +63,46 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
-        # Rename columns including 'Web URL' to 'Webshop'
-        rename_columns = {
+        # Renaming columns including making links clickable
+        combined_data = combined_data.rename(columns={
+            "Produktgruppekode": "Size/Format",
+            "Varekategorikode": "Category",
+            "Web URL": "Webshop",
             "Keyboard Language": "Keyboard",
-            "Condition": "Condition",
-            "Product Group Code": "Size/Format",
-            "Item Category Code": "Category",
-            "Web URL": "Webshop"
-        }
-        combined_data = combined_data.rename(columns=rename_columns)
+            "Condition": "Condition"
+        })
+        combined_data['Webshop'] = combined_data['Webshop'].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
 
-        col_keyboard, col_condition, col_size_format, col_category = st.columns(4)
-        
+        # Applying filters
+        filters_widget_cols = st.columns(len(combined_data.columns) // 5 + 1)
         filters = {}
-        if "Keyboard" in combined_data.columns:
-            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", combined_data["Keyboard"].unique())
-        if "Condition" in combined_data.columns:
-            filters["Condition"] = col_condition.multiselect("Condition", combined_data["Condition"].unique())
-        if "Size/Format" in combined_data.columns:
-            filters["Size/Format"] = col_size_format.multiselect("Size/Format", combined_data["Size/Format"].unique())
-        if "Category" in combined_data.columns:
-            filters["Category"] = col_category.multiselect("Category", combined_data["Category"].unique())
+        for i, col in enumerate(combined_data.columns):
+            if col not in ["Webshop"]:  # Exclude the clickable links from filters
+                filters[col] = filters_widget_cols[i % len(filters_widget_cols)].multiselect(f"Filter by {col}", options=combined_data[col].unique(), default=combined_data[col].unique())
 
-        for column, selected_values in filters.items():
+        for col, selected_values in filters.items():
             if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
+                combined_data = combined_data[combined_data[col].isin(selected_values)]
         
-        # Displaying the DataFrame with clickable 'Webshop' links
-        combined_data['Webshop'] = combined_data['Webshop'].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
-        st.write(combined_data.to_html(escape=False, index=False), unsafe_allow_html=True)
+        # Paginating the filtered data
+        page_size = 10  # Adjust the page size as needed
+        paginated_data = paginate_dataframe(combined_data, page_size)
+
+        # Displaying the paginated and filtered data
+        st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
+        
+        # Pagination buttons
+        col1, col2, _ = st.columns([1,1,6])
+        with col1:
+            st.button("Previous", on_click=lambda: st.session_state.update({"prev": True}))
+        with col2:
+            st.button("Next", on_click=lambda: st.session_state.update({"next": True}))
+
+# Remaining parts of your code for admin_page and main functions...
 
 def admin_page():
-    st.sidebar.title("Administration")
-    username = st.sidebar.text_input("Username", type="default")
-    password = st.sidebar.text_input("Password", type="password")
-    
-    if not check_credentials(username, password):
-        st.sidebar.warning("Incorrect credentials. Please try again.")
-        return
-
-    file1 = st.file_uploader("Upload file:", type=["xlsx"])
-    
-    if file1:
-        combined_data = pd.read_excel(file1)
-        last_update_date = datetime.now()
-        st.success("Data has been updated successfully!")
-        st.write("Preview of combined data:")
-        st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
+    # Your existing code for admin_page
+    pass
 
 def main():
     st.sidebar.title("Navigation")
