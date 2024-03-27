@@ -49,7 +49,7 @@ def display_data_page():
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Foxway Stocklist V2")
+        st.title("Your Stocklist")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -62,7 +62,9 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    if combined_data is not None and not combined_data.empty:
+    apply_filters = st.checkbox("Apply filters")
+
+    if combined_data is not None and not combined_data.empty and apply_filters:
         # Renaming columns including making links clickable
         combined_data = combined_data.rename(columns={
             "Produktgruppekode": "Size/Format",
@@ -78,7 +80,7 @@ def display_data_page():
         filters = {}
         for i, col in enumerate(combined_data.columns):
             if col not in ["Webshop"]:  # Exclude the clickable links from filters
-                filters[col] = filters_widget_cols[i % len(filters_widget_cols)].multiselect(f"Filter by {col}", options=combined_data[col].unique(), default=combined_data[col].unique())
+                filters[col] = filters_widget_cols[i % len(filters_widget_cols)].multiselect(f"Filter by {col}", options=combined_data[col].unique())
 
         for col, selected_values in filters.items():
             if selected_values:
@@ -97,8 +99,11 @@ def display_data_page():
             st.button("Previous", on_click=lambda: st.session_state.update({"prev": True}))
         with col2:
             st.button("Next", on_click=lambda: st.session_state.update({"next": True}))
+    elif not apply_filters and combined_data is not None and not combined_data.empty:
+        # Show the DataFrame without filters
+        st.dataframe(combined_data)
 
-# Remaining parts of your code for admin_page and main functions...
+# Your existing code for admin_page and main functions...
 
 def admin_page():
     # Your existing code for admin_page
