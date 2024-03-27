@@ -3,6 +3,11 @@ import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
 
+
+# Constants for Admin Authentication
+admin_username = st.secrets["general"]["ADMIN_USERNAME"]
+admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
+
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
