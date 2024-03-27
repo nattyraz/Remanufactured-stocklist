@@ -7,7 +7,6 @@ import re
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
-
 def check_credentials(username, password):
     return username == admin_username and password == admin_password
 
@@ -17,9 +16,6 @@ st.set_page_config(
     page_icon="favicon.ico",
     layout="wide"
 )
-
-def check_credentials(username, password):
-    return username == st.secrets["general"]["ADMIN_USERNAME"] and password == st.secrets["general"]["ADMIN_PASSWORD"]
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
@@ -51,6 +47,10 @@ def paginate_dataframe(df, page_size):
     end_idx = (page_num + 1) * page_size
     return df.iloc[start_idx:end_idx]
 
+def customize_dataframe_display(df):
+    # Placeholder function for DataFrame customization
+    return df
+
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -75,7 +75,16 @@ def display_data_page():
         combined_data = customize_dataframe_display(combined_data)
         paginated_data = paginate_dataframe(combined_data, 10)
         st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
-        pagination_buttons()
+
+def load_excel_data():
+    file_path = '/mnt/data/Vareoversigt Udvidet DCCAS_ROFO 2024-03-27T12_13_05.xlsx'
+    try:
+        df = pd.read_excel(file_path)
+        get_combined_data()['data'] = df
+        get_last_update_date()['date'] = datetime.now()
+        st.success("Le fichier Excel a été chargé avec succès.")
+    except Exception as e:
+        st.error(f"Une erreur s'est produite lors du chargement du fichier Excel : {e}")
 
 def process_admin_file_upload():
     uploaded_file = st.file_uploader("Téléchargez le fichier de stock:", type=["xlsx"])
@@ -108,6 +117,8 @@ def admin_page():
         st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
 
 def main():
+    load_excel_data()  # Chargement des données Excel au démarrage de l'application.
+    
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
     
@@ -118,4 +129,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
