@@ -47,7 +47,7 @@ def paginate_dataframe(df, page_size):
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)  # Replace with your logo URL
     with col2:
         st.title("Your Stocklist")
     
@@ -75,11 +75,14 @@ def display_data_page():
         })
         combined_data['Webshop'] = combined_data['Webshop'].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
 
+        # Excluding specific filters
+        exclude_filters = ["Eksport Pris", "Lager", "Beskrivelse"]
+
         # Applying filters
         filters_widget_cols = st.columns(len(combined_data.columns) // 5 + 1)
         filters = {}
         for i, col in enumerate(combined_data.columns):
-            if col not in ["Webshop"]:  # Exclude the clickable links from filters
+            if col not in ["Webshop"] + exclude_filters:  # Exclude the clickable links and specific filters from filters
                 filters[col] = filters_widget_cols[i % len(filters_widget_cols)].multiselect(f"Filter by {col}", options=combined_data[col].unique())
 
         for col, selected_values in filters.items():
