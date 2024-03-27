@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import re  # For regular expression matching
-
+import re
 
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
@@ -15,12 +14,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Function to check admin credentials
 def check_credentials(username, password):
-    # Adjust the method of storing and comparing credentials as necessary
     return username == st.secrets["general"]["ADMIN_USERNAME"] and password == st.secrets["general"]["ADMIN_PASSWORD"]
 
-# Decorator for caching data loading
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
@@ -29,7 +25,6 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
-# Function for advanced data filtering based on search query
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
@@ -39,7 +34,6 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-# Pagination functionality
 def paginate_dataframe(df, page_size):
     page_num = st.session_state.get('page_num', 0)
     if 'next' in st.session_state:
@@ -53,7 +47,6 @@ def paginate_dataframe(df, page_size):
     end_idx = (page_num + 1) * page_size
     return df.iloc[start_idx:end_idx]
 
-# Displaying data with options for filtering and pagination
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
@@ -75,17 +68,24 @@ def display_data_page():
     apply_filters = st.checkbox("Apply filters")
 
     if combined_data is not None and not combined_data.empty and apply_filters:
-        # Customizing DataFrame display
         combined_data = customize_dataframe_display(combined_data)
-        # Paginating the filtered data
-        page_size = 10
-        paginated_data = paginate_dataframe(combined_data, page_size)
-        # Displaying the paginated and filtered data
+        paginated_data = paginate_dataframe(combined_data, 10)
         st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
-        # Pagination buttons
         pagination_buttons()
 
-# Admin page for uploading and processing the stock file
+def process_admin_file_upload():
+    uploaded_file = st.file_uploader("Téléchargez le fichier de stock:", type=["xlsx"])
+    if uploaded_file is not None:
+        try:
+            dataframe = pd.read_excel(uploaded_file)
+            st.write("Aperçu des données chargées :")
+            st.dataframe(dataframe)
+            get_combined_data()['data'] = dataframe
+            get_last_update_date()['date'] = datetime.now()
+            st.success("Le fichier de stock a été téléchargé et traité avec succès.")
+        except Exception as e:
+            st.error(f"Une erreur s'est produite lors du traitement du fichier : {e}")
+
 def admin_page():
     st.sidebar.title("Administration")
     username = st.sidebar.text_input("Nom d'utilisateur", key="username")
@@ -94,7 +94,6 @@ def admin_page():
     if st.sidebar.button("Connexion"):
         if check_credentials(username, password):
             st.session_state['admin_logged_in'] = True
-            st.sidebar.success("Connexion réussie!")
         else:
             st.sidebar.error("Identifiants incorrects. Veuillez réessayer.")
             st.session_state['admin_logged_in'] = False
@@ -104,7 +103,6 @@ def admin_page():
     else:
         st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
 
-# Main function to control app layout
 def main():
     st.sidebar.title("Navigation")
     page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
@@ -116,3 +114,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
