@@ -3,24 +3,22 @@ import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
 
-
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
+
+def check_credentials(username, password):
+    return username == admin_username and password == admin_password
+
+
 # Set page configuration
 st.set_page_config(
     page_title="Remanufactured Stocklist",
-    page_icon=":file_folder:",
+    page_icon="favicon.ico",
     layout="wide"
 )
 
-# Function to check admin credentials
-def check_credentials(username, password):
-    # Adjust the method of storing and comparing credentials as necessary
-    return username == st.secrets["general"]["ADMIN_USERNAME"] and password == st.secrets["general"]["ADMIN_PASSWORD"]
-
-# Decorator for caching data loading
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
 def get_combined_data():
     return {'data': None}
@@ -29,7 +27,6 @@ def get_combined_data():
 def get_last_update_date():
     return {'date': None}
 
-# Function for advanced data filtering based on search query
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
@@ -39,27 +36,12 @@ def advanced_filter_data_by_search_query(df, query):
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
-# Pagination functionality
-def paginate_dataframe(df, page_size):
-    page_num = st.session_state.get('page_num', 0)
-    if 'next' in st.session_state:
-        page_num += 1
-    elif 'prev' in st.session_state:
-        page_num -= 1
-    page_num = max(page_num, 0)
-    page_num = min(page_num, len(df) // page_size)
-    st.session_state['page_num'] = page_num
-    start_idx = page_num * page_size
-    end_idx = (page_num + 1) * page_size
-    return df.iloc[start_idx:end_idx]
-
-# Displaying data with options for filtering and pagination
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Stocklist Dashboard")
+        st.title("Foxway stocklist")
     
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -72,46 +54,91 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    apply_filters = st.checkbox("Apply filters")
+    if combined_data is not None and not combined_data.empty:
+        # Rename columns
+        rename_columns = {
+            "Brand": "Brand",
+            "Item Category Code": "Category",
+            "Product Group Code": "Size/Format",
+            "Condition": "Condition",
+            "Keyboard Language": "Keyboard"
+        }
+        combined_data = combined_data.rename(columns=rename_columns)
 
-    if combined_data is not None and not combined_data.empty and apply_filters:
-        # Customizing DataFrame display
-        combined_data = customize_dataframe_display(combined_data)
-        # Paginating the filtered data
-        page_size = 10
-        paginated_data = paginate_dataframe(combined_data, page_size)
-        # Displaying the paginated and filtered data
-        st.write(paginated_data.to_html(escape=False), unsafe_allow_html=True)
-        # Pagination buttons
-        pagination_buttons()
+        col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
 
-# Admin page for uploading and processing the stock file
+        
+        filters = {}
+        if "Brand" in combined_data.columns:
+            filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
+        if "Category" in combined_data.columns:
+            filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
+        if "Size/Format" in combined_data.columns:
+            filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
+        if "Keyboard" in combined_data.columns:
+            filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
+        if "Condition" in combined_data.columns:
+            filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
+        
+        for column, selected_values in filters.items():
+            if selected_values:
+                combined_data = combined_data[combined_data[column].isin(selected_values)]
+        
+        currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
+        selected_currency = st.selectbox("Select a currency:", currency_columns)
+        
+        filtered_data = combined_data[
+            (combined_data[selected_currency].notna()) & 
+            (combined_data[selected_currency] != 0) &
+            (combined_data["Avail. Qty"] > 0)
+        ]
+        
+        # Remove unwanted columns
+        columns_to_remove = ["Kunde land", "Brand"]
+        filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
+        
+        columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
+        columns_to_display.append(selected_currency)
+        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
+        st.dataframe(s)
+
+# ... (pre-existing code remains unchanged)
+
 def admin_page():
     st.sidebar.title("Administration")
-    username = st.sidebar.text_input("Nom d'utilisateur", key="username")
-    password = st.sidebar.text_input("Mot de passe", type="password", key="password")
+    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
+    password = st.sidebar.text_input("Mot de passe", type="password")
     
-    if st.sidebar.button("Connexion"):
-        if check_credentials(username, password):
-            st.session_state['admin_logged_in'] = True
-            st.sidebar.success("Connexion réussie!")
-        else:
-            st.sidebar.error("Identifiants incorrects. Veuillez réessayer.")
-            st.session_state['admin_logged_in'] = False
+    if not check_credentials(username, password):
+        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+        return
 
-    if st.session_state.get('admin_logged_in', False):
-        process_admin_file_upload()
-    else:
-        st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
+    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
+    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
+    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
+    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
+    
+    files = [file for file in [file1] if file]
+    
+    if files:
+        dataframes = [pd.read_excel(file) for file in files]
+        combined_data = pd.concat(dataframes)
+        last_update_date = datetime.now()
+        st.success("The data has been updated successfully!")
+        st.write("Prévisualisation des données combinées :")
+        st.write(combined_data)
+        get_combined_data()['data'] = combined_data
+        get_last_update_date()['date'] = last_update_date
 
-# Main function to control app layout
+
+
 def main():
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choose a page:", ["Data Display", "Administration"])
+    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
     
-    if page == "Data Display":
+    if page == "Affichage des données":
         display_data_page()
-    elif page == "Administration":
+    else:
         admin_page()
 
 if __name__ == "__main__":
