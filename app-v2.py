@@ -109,8 +109,38 @@ def display_data_page():
 # Your existing code for admin_page and main functions...
 
 def admin_page():
-    # Your existing code for admin_page
-    pass
+    st.sidebar.title("Administration")
+    username = st.sidebar.text_input("Nom d'utilisateur", key="username")
+    password = st.sidebar.text_input("Mot de passe", type="password", key="password")
+    
+    if st.sidebar.button("Connexion"):
+        if check_credentials(username, password):
+            st.session_state['admin_logged_in'] = True
+        else:
+            st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
+            st.session_state['admin_logged_in'] = False
+
+    if st.session_state.get('admin_logged_in', False):
+        uploaded_file = st.file_uploader("Téléchargez le fichier de stock:", type=["xlsx"])
+        if uploaded_file is not None:
+            # Process the file
+            try:
+                # Assuming the uploaded file is an Excel file
+                dataframe = pd.read_excel(uploaded_file)
+                # Assuming you want to display the dataframe (you can remove this if not needed)
+                st.write("Aperçu des données chargées :")
+                st.write(dataframe)
+                
+                # Update the combined data and last update date
+                get_combined_data()['data'] = dataframe
+                get_last_update_date()['date'] = datetime.now()
+
+                st.success("Le fichier de stock a été téléchargé et traité avec succès.")
+            except Exception as e:
+                st.error(f"Une erreur s'est produite lors du traitement du fichier : {e}")
+    else:
+        st.sidebar.warning("Veuillez vous connecter pour accéder à cette page.")
+
 
 def main():
     st.sidebar.title("Navigation")
