@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+import matplotlib.pyplot as plt
 
 def load_data(uploaded_file):
     if uploaded_file is not None:
@@ -32,12 +32,25 @@ if not data.empty:
         st.write('**Kreditmaximum:**', company_data['Kreditmaksimum (RV)'])
         st.write('**Groupe Débiteur:**', company_data['Debitorprisgruppe'])
 
-    # Statistiques
+    # Statistiques et visualisation
     st.write('### Statistiques')
     active_clients = data[data['LastContact'] >= pd.Timestamp.now() - pd.DateOffset(months=12)]
     st.write('**Nombre de Clients Actifs (contactés dans les derniers 12 mois):**', len(active_clients))
     st.write('**Nombre Total de Clients:**', len(data))
+
+    # Visualisation - Bar Chart for Kreditmaximum
+    fig, ax = plt.subplots()
+    data['Kreditmaksimum (RV)'].value_counts().plot(kind='bar', ax=ax)
+    ax.set_title('Distribution de Kreditmaximum')
+    ax.set_xlabel('Kreditmaximum')
+    ax.set_ylabel('Nombre')
+    st.pyplot(fig)
+
+    # Visualisation - Pie Chart for Groupe Débiteur
+    fig, ax = plt.subplots()
+    data['Debitorprisgruppe'].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
+    ax.set_title('Répartition par Groupe Débiteur')
+    st.pyplot(fig)
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
 
-# Pour exécuter, sauvegardez ce script dans un fichier .py et lancez-le avec `streamlit run votre_fichier.py`
