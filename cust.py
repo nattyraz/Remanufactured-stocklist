@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 
 def load_data(uploaded_file):
     if uploaded_file is not None:
@@ -8,36 +9,34 @@ def load_data(uploaded_file):
     else:
         return pd.DataFrame()
 
-st.title('Gestionnaire de Clients')
+st.title('Dashboard des Ventes de Jeux')
 
-# Widget de téléchargement de fichier
+# Téléchargement de fichier
 uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
-    # Sélection de la compagnie
-    company_list = data['Navn'].dropna().unique()
-    selected_company = st.selectbox('Choisir une compagnie:', company_list)
+    # Distribution régionale des ventes
+    st.write('## Distribution Régionale des Ventes')
+    regions = data['Region'].value_counts().reset_index()
+    fig = px.pie(regions, values='Region', names='index', title='Ventes par Région')
+    st.plotly_chart(fig)
+    
+    # Top 10 des ventes de jeux
+    st.write('## Top 10 des Ventes de Jeux')
+    top_games = data.nlargest(10, 'Ventes')
+    fig2 = px.bar(top_games, x='Jeu', y='Ventes', title='Top 10 des Jeux par Ventes')
+    st.plotly_chart(fig2)
 
-    # Affichage des informations de la compagnie sélectionnée
-    if selected_company:
-        company_data = data[data['Navn'] == selected_company].iloc[0]
-        st.write('### Détails de la Compagnie')
-        st.write('**Nom:**', company_data['Navn'])
-        st.write('**Contact:**', company_data['Kontakt'])
-        st.write('**Email:**', company_data['Mail'])
-        st.write('**Téléphone:**', company_data['Telefon'])
-        st.write('**Ville:**', company_data['By'])
-        st.write('**Dernier Contact:**', company_data['LastContact'])
-        st.write('**Kreditmaximum:**', company_data['Kreditmaksimum (RV)'])
-        st.write('**Groupe Débiteur:**', company_data['Debitorprisgruppe'])
+    # Tendance des ventes au fil du temps
+    st.write('## Tendance des Ventes au Fil du Temps')
+    fig3 = px.line(data, x='Année', y='Ventes', color='Jeu', title='Tendances des Ventes par Jeu')
+    st.plotly_chart(fig3)
 
-    # Statistiques
-    st.write('### Statistiques')
-    active_clients = data[data['LastContact'] >= pd.Timestamp.now() - pd.DateOffset(months=12)]
-    st.write('**Nombre de Clients Actifs (contactés dans les derniers 12 mois):**', len(active_clients))
-    st.write('**Nombre Total de Clients:**', len(data))
+    # Dashboard numérique pour les ventes globales
+    st.write('## Résumé des Ventes')
+    total_sales = data['Ventes'].sum()
+    st.metric(label="Ventes Totales", value=f"${total_sales:,.2f}")
+
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
-
-# Pour exécuter, sauvegardez ce script dans un fichier .py et lancez-le avec `streamlit run votre_fichier.py`
