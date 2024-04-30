@@ -1,25 +1,36 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import pydeck as pdk
+from geopy.geocoders import Nominatim
 
+# Function to load data from an uploaded Excel file
 def load_data(uploaded_file):
     if uploaded_file is not None:
         return pd.read_excel(uploaded_file)
     else:
         return pd.DataFrame()
 
+# Function to geocode an address (fallback if no coordinates in the dataset)
+def geocode_address(address):
+    geolocator = Nominatim(user_agent="my_geocoder")
+    try:
+        location = geolocator.geocode(address)
+        return location.latitude, location.longitude
+    except:
+        return None, None
+
 st.title('Gestionnaire de Clients')
 
-# Widget de téléchargement de fichier
+# File uploader widget
 uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
-    # Sélection de la compagnie
+    # Selection of a company from the list
     company_list = data['Navn'].dropna().unique()
     selected_company = st.selectbox('Choisir une compagnie:', company_list)
 
-    # Affichage des informations de la compagnie sélectionnée
+    # Display of selected company details
     if selected_company:
         company_data = data[data['Navn'] == selected_company].iloc[0]
         st.write('### Détails de la Compagnie')
@@ -32,36 +43,36 @@ if not data.empty:
         st.write('**Kreditmaximum:**', company_data['Kreditmaksimum (RV)'])
         st.write('**Groupe Débiteur:**', company_data['Debitorprisgruppe'])
 
-    # Statistiques et visualisation
-    st.write('### Statistiques')
-    active_clients = data[data['LastContact'] >= pd.Timestamp.now() - pd.DateOffset(months=12)]
-    st.write('**Nombre de Clients Actifs (contactés dans les derniers 12 mois):**', len(active_clients))
-    st.write('**Nombre Total de Clients:**', len(data))
+    # Check if coordinates columns exist, otherwise geocode (this is simplified and would ideally be handled differently)
+    if 'Latitude' not in data.columns or 'Longitude' not in data.columns:
+        st.write("Geocoding addresses... this may take a while.")
+        data['Latitude'], data['Longitude'] = zip(*data['Adresse'].map(geocode_address))
 
-    # Visualisation - Bar Chart for Kreditmaximum
-    fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
-    data['Kreditmaksimum (RV)'].value_counts().plot(kind='bar', ax=ax)
-    ax.set_title('Distribution de Kreditmaximum')
-    ax.set_xlabel('Kreditmaximum')
-    ax.set_ylabel('Nombre')
-    st.pyplot(fig)
+    # Filtering clients by country code
+    countries = ['France', 'Belgium', 'Luxembourg', 'Monaco']
+    filtered_data = data[data['Lande-/områdekode'].isin(countries)]
 
-    # Visualisation - Pie Chart for Groupe Débiteur
-    fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
-    data['Debitorprisgruppe'].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
-    ax.set_title('Répartition par Groupe Débiteur')
-    st.pyplot(fig)
-
-    # Visualisation - Bar Chart for Country Distribution
-    if 'Pays' in data.columns:
-        fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
-        data['Pays'].value_counts().plot(kind='bar', ax=ax)
-        ax.set_title('Distribution par Pays')
-        ax.set_xlabel('Pays')
-        ax.set_ylabel('Nombre de Clients')
-        st.pyplot(fig)
-    else:
-        st.write("La colonne 'Pays' n'est pas trouvée dans les données.")
-
+    # Map visualization of client locations
+    st.write('### Map of Client Locations')
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=filtered_data['Latitude'].mean(),
+            longitude=filtered_data['Longitude'].mean(),
+            zoom=5,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                'ScatterplotLayer',
+                data=filtered_data,
+                get_position='[Longitude, Latitude]',
+                get_color='[200, 30, 0, 160]',
+                get_radius=10000,
+            ),
+        ],
+    ))
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
+
+
