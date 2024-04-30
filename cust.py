@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import numpy as np
 
 def load_data(uploaded_file):
     if uploaded_file is not None:
@@ -10,23 +10,34 @@ def load_data(uploaded_file):
 
 st.title('Gestionnaire de Clients')
 
-# Téléchargement de fichier
+# Widget de téléchargement de fichier
 uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
-    # Visualisation des clients par ville
-    st.write('## Distribution des Clients par Ville')
-    fig = px.bar(data['By'].value_counts().reset_index(), x='index', y='By', labels={'index': 'Ville', 'By': 'Nombre de Clients'})
-    st.plotly_chart(fig)
+    # Sélection de la compagnie
+    company_list = data['Navn'].dropna().unique()
+    selected_company = st.selectbox('Choisir une compagnie:', company_list)
 
-    # Analyse des contacts récents
-    recent_contacts = data[data['LastContact'] >= pd.Timestamp.now() - pd.DateOffset(months=12)]
-    st.write('## Contacts Récents')
-    fig2 = px.line(recent_contacts, x='LastContact', y='Nummer', title='Activité des Contacts Récents')
-    st.plotly_chart(fig2)
+    # Affichage des informations de la compagnie sélectionnée
+    if selected_company:
+        company_data = data[data['Navn'] == selected_company].iloc[0]
+        st.write('### Détails de la Compagnie')
+        st.write('**Nom:**', company_data['Navn'])
+        st.write('**Contact:**', company_data['Kontakt'])
+        st.write('**Email:**', company_data['Mail'])
+        st.write('**Téléphone:**', company_data['Telefon'])
+        st.write('**Ville:**', company_data['By'])
+        st.write('**Dernier Contact:**', company_data['LastContact'])
+        st.write('**Kreditmaximum:**', company_data['Kreditmaksimum (RV)'])
+        st.write('**Groupe Débiteur:**', company_data['Debitorprisgruppe'])
 
-    # Autres sections de l'interface ici...
+    # Statistiques
+    st.write('### Statistiques')
+    active_clients = data[data['LastContact'] >= pd.Timestamp.now() - pd.DateOffset(months=12)]
+    st.write('**Nombre de Clients Actifs (contactés dans les derniers 12 mois):**', len(active_clients))
+    st.write('**Nombre Total de Clients:**', len(data))
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
 
+# Pour exécuter, sauvegardez ce script dans un fichier .py et lancez-le avec `streamlit run votre_fichier.py`
