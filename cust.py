@@ -39,7 +39,7 @@ if not data.empty:
     st.write('**Nombre Total de Clients:**', len(data))
 
     # Visualisation - Bar Chart for Kreditmaximum
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
     data['Kreditmaksimum (RV)'].value_counts().plot(kind='bar', ax=ax)
     ax.set_title('Distribution de Kreditmaximum')
     ax.set_xlabel('Kreditmaximum')
@@ -47,10 +47,21 @@ if not data.empty:
     st.pyplot(fig)
 
     # Visualisation - Pie Chart for Groupe Débiteur
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
     data['Debitorprisgruppe'].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
     ax.set_title('Répartition par Groupe Débiteur')
     st.pyplot(fig)
+
+    # Visualisation - Bar Chart for Country Distribution
+    if 'Pays' in data.columns:
+        fig, ax = plt.subplots(figsize=(10, 4))  # Rectangular shape
+        data['Pays'].value_counts().plot(kind='bar', ax=ax)
+        ax.set_title('Distribution par Pays')
+        ax.set_xlabel('Pays')
+        ax.set_ylabel('Nombre de Clients')
+        st.pyplot(fig)
+    else:
+        st.write("La colonne 'Pays' n'est pas trouvée dans les données.")
+
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
-
