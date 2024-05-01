@@ -16,35 +16,24 @@ uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
-    # Display of selected company details
-    company_list = data['Navn'].dropna().unique()
-    selected_company = st.selectbox('Choisir une compagnie:', company_list)
-    if selected_company:
-        company_data = data[data['Navn'] == selected_company].iloc[0]
-        st.write('### Détails de la Compagnie')
-        st.write('**Nom:**', company_data['Navn'])
-        st.write('**Contact:**', company_data['Kontakt'])
-        st.write('**Email:**', company_data['Mail'])
-        st.write('**Téléphone:**', company_data['Telefon'])
-        st.write('**Ville:**', company_data['By'])
-        st.write('**Dernier Contact:**', company_data['LastContact'])
-        st.write('**Kreditmaximum:**', company_data['Kreditmaksimum (RV)'])
-        st.write('**Groupe Débiteur:**', company_data['Debitorprisgruppe'])
+    # Pie chart for customer segmentation
+    if 'Customer Segmentation' in data.columns and st.checkbox("Voir la répartition par segmentation de client"):
+        segmentation_data = data['Customer Segmentation'].value_counts()
+        fig1, ax1 = plt.subplots()
+        ax1.pie(segmentation_data, labels=segmentation_data.index, autopct='%1.1f%%', startangle=90)
+        ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+        st.pyplot(fig1)
+    
+    # Bar chart for clients by city
+    if 'By' in data.columns and st.checkbox("Voir le nombre de clients par ville"):
+        city_counts = data['By'].value_counts()
+        fig2, ax2 = plt.subplots()
+        city_counts.plot(kind='bar', color='skyblue', ax=ax2)
+        ax2.set_title('Nombre de Clients par Ville')
+        ax2.set_xlabel('Ville')
+        ax2.set_ylabel('Nombre de Clients')
+        st.pyplot(fig2)
 
-    # Pie chart visualization
-    if st.checkbox("Voir la répartition par ville"):
-        city_data = data['By'].value_counts()
-        fig, ax = plt.subplots()
-        ax.pie(city_data, labels=city_data.index, autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        st.pyplot(fig)
-
-    if st.checkbox("Voir la répartition par groupe débiteur"):
-        group_data = data['Debitorprisgruppe'].value_counts()
-        fig, ax = plt.subplots()
-        ax.pie(group_data, labels=group_data.index, autopct='%1.1f%%', startangle=90)
-        ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-        st.pyplot(fig)
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
 
