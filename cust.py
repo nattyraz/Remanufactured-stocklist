@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
 
 def load_data(uploaded_file):
     if uploaded_file is not None:
@@ -14,15 +15,19 @@ uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
+    # Dropdown for selecting a client
+    client_names = data['Navn'].dropna().unique()
+    selected_client = st.selectbox('Choisir un client:', client_names)
+    
+    # Bar chart for clients by city with Plotly
     if 'By' in data.columns and st.checkbox("Voir le nombre de clients par ville avec Plotly"):
         city_counts = data['By'].value_counts().reset_index()
         city_counts.columns = ['Ville', 'Nombre de Clients']
         fig = px.bar(city_counts, x='Ville', y='Nombre de Clients', title='Nombre de Clients par Ville')
-        fig.update_layout(xaxis={'categoryorder':'total descending'})
+        fig.update_layout(xaxis={'categoryorder': 'total descending'})
         fig.update_xaxes(tickangle=45)
         st.plotly_chart(fig)
 
-    
     # Display client details
     if selected_client:
         client_data = data[data['Navn'] == selected_client].iloc[0]
@@ -43,6 +48,5 @@ if not data.empty:
         ax1.pie(segmentation_data, labels=segmentation_data.index, autopct='%1.1f%%', startangle=90)
         ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
         st.pyplot(fig1)
-    
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
