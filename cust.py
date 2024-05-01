@@ -16,6 +16,23 @@ uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
+    # Dropdown for selecting a client
+    client_names = data['Navn'].dropna().unique()
+    selected_client = st.selectbox('Choisir un client:', client_names)
+    
+    # Display client details
+    if selected_client:
+        client_data = data[data['Navn'] == selected_client].iloc[0]
+        st.write('### Détails du Client Sélectionné')
+        st.write('**Nom:**', client_data['Navn'])
+        st.write('**Contact:**', client_data['Kontakt'])
+        st.write('**Téléphone:**', client_data['Telefon'])
+        st.write('**Email:**', client_data['Mail'])
+        st.write('**Ville:**', client_data['By'])
+        st.write('**Dernier Contact:**', client_data['LastContact'])
+        st.write('**Segmentation du client:**', client_data.get('Customer Segmentation', 'N/A'))
+        st.write('**Groupe Débiteur:**', client_data['Debitorprisgruppe'])
+
     # Pie chart for customer segmentation
     if 'Customer Segmentation' in data.columns and st.checkbox("Voir la répartition par segmentation de client"):
         segmentation_data = data['Customer Segmentation'].value_counts()
@@ -36,5 +53,3 @@ if not data.empty:
 
 else:
     st.write("Veuillez télécharger un fichier pour voir les données.")
-
-
