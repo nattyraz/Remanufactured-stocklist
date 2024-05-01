@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
-# Function to load data from an uploaded Excel file
 def load_data(uploaded_file):
     if uploaded_file is not None:
         return pd.read_excel(uploaded_file)
@@ -11,14 +10,18 @@ def load_data(uploaded_file):
 
 st.title('Gestionnaire de Clients')
 
-# File uploader widget
 uploaded_file = st.file_uploader("Choisissez un fichier Excel", type=['xlsx'])
 data = load_data(uploaded_file)
 
 if not data.empty:
-    # Dropdown for selecting a client
-    client_names = data['Navn'].dropna().unique()
-    selected_client = st.selectbox('Choisir un client:', client_names)
+    if 'By' in data.columns and st.checkbox("Voir le nombre de clients par ville avec Plotly"):
+        city_counts = data['By'].value_counts().reset_index()
+        city_counts.columns = ['Ville', 'Nombre de Clients']
+        fig = px.bar(city_counts, x='Ville', y='Nombre de Clients', title='Nombre de Clients par Ville')
+        fig.update_layout(xaxis={'categoryorder':'total descending'})
+        fig.update_xaxes(tickangle=45)
+        st.plotly_chart(fig)
+
     
     # Display client details
     if selected_client:
