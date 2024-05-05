@@ -144,14 +144,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-import requests
-
-API_URL = "https://ubiquitous-succotash-695pxpr6rqrc5g5v-3000.app.github.dev/api/v1/prediction/41bb1ebf-43b1-4046-b359-10a8b7153c05"
-
-def query(payload):
-    response = requests.post(API_URL, json=payload)
-    return response.json()
-    
-output = query({
-    "question": "Hey, how are you?",
-})
