@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
-
+import { BubbleChat } from 'flowise-embed-react'
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
@@ -143,3 +143,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+const App = () => {
+    return (
+        <BubbleChat chatflowid="41bb1ebf-43b1-4046-b359-10a8b7153c05" apiHost="https://ubiquitous-succotash-695pxpr6rqrc5g5v-3000.app.github.dev" />
+    );
+};
