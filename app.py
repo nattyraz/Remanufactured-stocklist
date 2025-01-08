@@ -26,6 +26,10 @@ def get_last_update_date():
     return {'date': None}
 
 def advanced_filter_data_by_search_query(df, query):
+    if df is None or df.empty:
+        st.error("No data available to filter.")
+        return df
+
     sub_queries = re.split(r'[ *]', query)
     for sub_query in sub_queries:
         if sub_query:
@@ -98,6 +102,8 @@ def display_data_page():
         columns_to_display.append(selected_currency)
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
         st.dataframe(s)
+    else:
+        st.warning("No data available to display.")
 
 def admin_page():
     st.sidebar.title("Administration")
