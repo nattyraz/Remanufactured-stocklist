@@ -48,6 +48,9 @@ def display_data_page():
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
 
+    st.write(f"Combined Data: {combined_data}")  # Debugging line
+    st.write(f"Last Update Date: {last_update_date}")  # Debugging line
+
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
