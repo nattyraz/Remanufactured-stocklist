@@ -1,14 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import re  # For regular expression matching
-
-# Constants for Admin Authentication
-admin_username = st.secrets["general"]["ADMIN_USERNAME"]
-admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
-
-def check_credentials(username, password):
-    return username == admin_username and password == admin_password
+import re
 
 # Set page configuration
 st.set_page_config(
@@ -17,13 +10,24 @@ st.set_page_config(
     layout="wide"
 )
 
+# Load the tab-separated data directly (replace this with your document content)
+data = """
+No.	Description	Item Category Code	Product Group Code	Software Language	Keyboard Language	Graphics01	Graphics02	Condition	Warranty	Avail. Qty	Promo Price EUR	Promo Price DKK	Promo Price GBP	Brand
+10US0005FR-CTO2-S	AIO V530-22ICB i3-8100T/4GB/1TB/FHD/MB/B/C/NOOS	PC	ALL-IN-ONE		FR	Intel(R) UHD Graphics 630		SILVER	1YR CCR	1	241	1794	200	LENOVO DESKTOP
+11CD004NUK-S	M90a i5-10500/8GB/256M2/FHD/MB/B/C(IR)/W10P	PC	ALL-IN-ONE	GB	GB	Intel UHD Graphics 630 Shared Video Memory (UMA)		SILVER	1YR CCR	1	616	4590	511	THINKCENTRE
+# ... (rest of your data here, truncated for brevity)
+"""
+
 @st.cache_data
 def get_combined_data():
-    return {'data': None}
+    # Convert the tab-separated string to a DataFrame
+    from io import StringIO
+    df = pd.read_csv(StringIO(data), sep='\t')
+    return {'data': df}
 
 @st.cache_data
 def get_last_update_date():
-    return {'date': None}
+    return {'date': datetime.now()}  # Simulate an update date
 
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ *]', query)
@@ -39,7 +43,7 @@ def display_data_page():
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Foxway stocklist")
+        st.title("Foxway Stocklist")
 
     combined_data = get_combined_data()['data']
     last_update_date = get_last_update_date()['date']
@@ -47,7 +51,7 @@ def display_data_page():
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    search_query = st.text_input("Search by description or No. (use the * in your searches):")
+    search_query = st.text_input("Search by description or No. (use * in your searches):")
 
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
@@ -96,45 +100,11 @@ def display_data_page():
 
         columns_to_display = [col for col in filtered_data.columns if col not in currency_columns]
         columns_to_display.append(selected_currency)
-        s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
+        s = filtered_data[columns_to_display].style.format({selected_currency: "{:.2f}"})
         st.dataframe(s)
 
-# ... (pre-existing code remains unchanged)
-
-def admin_page():
-    st.sidebar.title("Administration")
-    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
-    password = st.sidebar.text_input("Mot de passe", type="password")
-
-    if not check_credentials(username, password):
-        st.sidebar.warning("Identifiants incorrects. Veuillez réessayer.")
-        return
-
-    file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
-    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
-    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
-
-    files = [file for file in [file1] if file]
-
-    if files:
-        dataframes = [pd.read_excel(file) for file in files]
-        combined_data = pd.concat(dataframes)
-        last_update_date = datetime.now()
-        st.success("The data has been updated successfully!")
-        st.write("Prévisualisation des données combinées :")
-        st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
-
 def main():
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Choisissez une page:", ["Affichage des données", "Administration"])
-
-    if page == "Affichage des données":
-        display_data_page()
-    else:
-        admin_page()
+    display_data_page()  # Directly show the data page for now
 
 if __name__ == "__main__":
     main()
