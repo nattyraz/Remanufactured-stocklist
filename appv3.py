@@ -5,6 +5,7 @@ import re  # For regular expression matching
 from openai import OpenAI
 import requests
 import json
+import pdfplumber
 
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
@@ -44,7 +45,7 @@ def advanced_filter_data_by_search_query(df, query):
 # Fonction pour chercher avec SerpApi
 def search_serpapi(query):
     params = {
-        "q": f"site:psref.lenovo.com {query}",
+        "q": f"site:psref.lenovo.com {query} filetype:pdf",
         "api_key": st.secrets["serpapi"]["API_KEY"],
         "num": 5  # Limite à 5 résultats
     }
@@ -55,12 +56,26 @@ def search_serpapi(query):
     else:
         return {"error": f"Erreur {response.status_code}"}
 
+# Fonction pour extraire le texte d'un PDF
+def extract_pdf_text(pdf_url):
+    try:
+        response = requests.get(pdf_url, headers={"User-Agent": "Mozilla/5.0"})
+        with open("temp.pdf", "wb") as f:
+            f.write(response.content)
+        with pdfplumber.open("temp.pdf") as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+        return text
+    except Exception as e:
+        return f"Erreur lors de l'extraction du PDF : {e}"
+
 # Fonction pour interagir avec le LLM OpenRouter
 def get_llm_response(prompt):
     response = client.chat.completions.create(
         model="mistralai/mixtral-8x7b-instruct",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=1000  # Augmenté pour des réponses plus détaillées
+        max_tokens=1500  # Pour gérer des PDFs longs
     )
     return response.choices[0].message.content
 
@@ -127,52 +142,57 @@ def display_data_page():
         s = filtered_data[columns_to_display].style.format({selected_currency: lambda x: "{:.2f}".format(x)})
         st.dataframe(s)
 
-    # Section Recherche Lenovo PSREF
-    st.subheader("Recherche intelligente Lenovo PSREF")
+    # Section Recherche Lenovo PSREF avec lecture de PDF
+    st.subheader("Recherche intelligente Lenovo PSREF (avec PDF)")
     psref_query = st.text_input("Entre une référence Lenovo (ex: ThinkPad X1 Carbon) ou une question :")
     if psref_query:
-        # Recherche avec SerpApi
+        # Recherche avec SerpApi pour trouver un PDF
         search_results = search_serpapi(psref_query)
         if "error" not in search_results:
             organic_results = search_results.get("organic_results", [])
-            results_text = "\n".join([f"{result['title']}: {result.get('snippet', 'Pas de description')} (Lien: {result['link']})" for result in organic_results])
-            st.write("Résultats bruts PSREF :", results_text)
+            pdf_links = [result["link"] for result in organic_results if result["link"].endswith(".pdf")]
+            if pdf_links:
+                pdf_url = pdf_links[0]  # Premier PDF trouvé
+                st.write(f"PDF trouvé : {pdf_url}")
+                pdf_text = extract_pdf_text(pdf_url)
+                st.write("Extrait du PDF :", pdf_text[:500] + "...")  # Aperçu limité
+            else:
+                st.write("Aucun PDF trouvé. Résultats bruts :", "\n".join([f"{r['title']}: {r.get('snippet', '')}" for r in organic_results]))
+                pdf_text = "Aucun contenu PDF disponible."
         else:
             st.write("Erreur lors de la recherche :", search_results["error"])
-            results_text = "Aucune donnée récupérée."
+            pdf_text = "Aucune donnée récupérée."
 
-        # Analyse par le LLM avec formatage en JSON
+        # Analyse par le LLM avec recherche spécifique au modèle
         llm_prompt = f"""
-        Voici les résultats d'une recherche sur Lenovo PSREF pour '{psref_query}':
-        {results_text}
+        Voici le contenu extrait d'un PDF Lenovo PSREF pour '{psref_query}':
+        {pdf_text}
 
-        Analyse ces données et retourne un tableau structuré **au format JSON uniquement** (sans texte supplémentaire autour) avec les colonnes suivantes pour chaque produit trouvé :
-        - "Modèle" : Nom du produit
+        Recherche les informations spécifiques au modèle '{psref_query}' dans ce texte. Retourne un tableau structuré **au format JSON uniquement** (sans texte supplémentaire) avec les colonnes suivantes pour ce modèle :
+        - "Modèle" : Nom exact du produit (doit correspondre à '{psref_query}' ou être proche)
         - "Mémoire" : Quantité et type de mémoire (ex: "16 Go DDR4")
-        - "Mémoire Modifiable" : "Oui" ou "Non" (si la mémoire peut être mise à jour)
+        - "Mémoire Modifiable" : "Oui" ou "Non" (si la mémoire peut être mise à jour, basé sur les slots ou mentions explicites)
         - "Disque" : Taille et type de stockage (ex: "512 Go SSD")
-        - "Disque Modifiable" : "Oui" ou "Non" (si le disque peut être remplacé)
+        - "Disque Modifiable" : "Oui" ou "Non" (si le disque peut être remplacé, basé sur les mentions)
         - "Options Modifiables" : Liste des autres options modifiables (ex: "Batterie, Wi-Fi")
-        - "Lien PSREF" : URL vers la page PSREF
+        - "Lien PSREF" : URL du PDF (utilise '{pdf_url}' si disponible)
 
-        Si une information est manquante, mets "Non spécifié" ou une estimation raisonnable basée sur les données.
+        Si une information est manquante, mets "Non spécifié". Si le modèle n'est pas trouvé, retourne une liste vide [].
         """
-        llm_response = get_llm_response(llm_prompt).strip()  # Nettoie les espaces ou retours à la ligne
+        llm_response = get_llm_response(llm_prompt).strip()
         
         # Convertir la réponse JSON en DataFrame
         try:
             results_json = json.loads(llm_response)
             if isinstance(results_json, list) and results_json:
                 df_results = pd.DataFrame(results_json)
-                st.subheader("Résultats formatés")
-                # Afficher le DataFrame sans unsafe_allow_html
+                st.subheader(f"Résultats formatés pour '{psref_query}'")
                 st.dataframe(df_results)
-                # Ajouter des boutons de lien séparés
                 st.write("Liens PSREF (cliquez pour ouvrir) :")
                 for index, row in df_results.iterrows():
                     st.link_button(f"Lien pour {row['Modèle']}", row["Lien PSREF"])
             else:
-                st.write("Le LLM n'a pas retourné de données structurées. Voici la réponse brute :", llm_response)
+                st.write(f"Aucune donnée trouvée pour '{psref_query}' dans le PDF. Réponse brute :", llm_response)
         except json.JSONDecodeError as e:
             st.write(f"Erreur de formatage JSON : {e}. Réponse brute :", llm_response)
 
