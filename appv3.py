@@ -144,7 +144,9 @@ def display_data_page():
 
     # Section Recherche Lenovo PSREF avec lecture de PDF
     st.subheader("Recherche intelligente Lenovo PSREF (avec PDF)")
-    psref_query = st.text_input("Entre une référence Lenovo (ex: ThinkPad X1 Carbon) ou une question :")
+    psref_query = st.text_input("Entre une référence Lenovo (ex: 'ThinkPad X1 Carbon' ou 'ThinkPad X1 Carbon avec 16 Go') :")
+    search_mode = st.radio("Mode de recherche :", ["Focus sur le détail", "Général"], horizontal=True)
+
     if psref_query:
         # Recherche avec SerpApi pour trouver un PDF
         search_results = search_serpapi(psref_query)
@@ -163,22 +165,46 @@ def display_data_page():
             st.write("Erreur lors de la recherche :", search_results["error"])
             pdf_text = "Aucune donnée récupérée."
 
-        # Analyse par le LLM avec recherche spécifique au modèle
-        llm_prompt = f"""
-        Voici le contenu extrait d'un PDF Lenovo PSREF pour '{psref_query}':
-        {pdf_text}
+        # Analyse par le LLM avec mode de recherche
+        if search_mode == "Focus sur le détail" and "avec" in psref_query.lower():
+            # Extraire le modèle et la spécificité
+            model_part = psref_query.split("avec")[0].strip()
+            spec_part = psref_query.split("avec")[1].strip()
+            llm_prompt = f"""
+            Voici le contenu extrait d'un PDF Lenovo PSREF pour '{psref_query}':
+            {pdf_text}
 
-        Recherche les informations spécifiques au modèle '{psref_query}' dans ce texte. Retourne un tableau structuré **au format JSON uniquement** (sans texte supplémentaire) avec les colonnes suivantes pour ce modèle :
-        - "Modèle" : Nom exact du produit (doit correspondre à '{psref_query}' ou être proche)
-        - "Mémoire" : Quantité et type de mémoire (ex: "16 Go DDR4")
-        - "Mémoire Modifiable" : "Oui" ou "Non" (si la mémoire peut être mise à jour, basé sur les slots ou mentions explicites)
-        - "Disque" : Taille et type de stockage (ex: "512 Go SSD")
-        - "Disque Modifiable" : "Oui" ou "Non" (si le disque peut être remplacé, basé sur les mentions)
-        - "Options Modifiables" : Liste des autres options modifiables (ex: "Batterie, Wi-Fi")
-        - "Lien PSREF" : URL du PDF (utilise '{pdf_url}' si disponible)
+            Recherche les informations spécifiques au modèle '{model_part}' avec un focus sur la spécificité '{spec_part}' (ex. mémoire, disque).
+            Retourne un tableau structuré **au format JSON uniquement** avec les colonnes suivantes pour ce modèle :
+            - "Modèle" : Nom exact du produit (doit correspondre à '{model_part}' ou être proche)
+            - "Mémoire" : Quantité et type de mémoire (ex: "16 Go DDR4")
+            - "Mémoire Modifiable" : "Oui" ou "Non" (si la mémoire peut être mise à jour)
+            - "Disque" : Taille et type de stockage (ex: "512 Go SSD")
+            - "Disque Modifiable" : "Oui" ou "Non" (si le disque peut être remplacé)
+            - "Options Modifiables" : Liste des autres options modifiables (ex: "Batterie, Wi-Fi")
+            - "Lien PSREF" : URL du PDF (utilise '{pdf_url}' si disponible)
 
-        Si une information est manquante, mets "Non spécifié". Si le modèle n'est pas trouvé, retourne une liste vide [].
-        """
+            Mets un accent particulier sur '{spec_part}' dans les résultats. Si l'information est manquante, mets "Non spécifié". Si le modèle ou la spécificité n'est pas trouvé, retourne une liste vide [].
+            """
+        else:
+            # Recherche générale
+            llm_prompt = f"""
+            Voici le contenu extrait d'un PDF Lenovo PSREF pour '{psref_query}':
+            {pdf_text}
+
+            Recherche les informations spécifiques au modèle '{psref_query}' dans ce texte.
+            Retourne un tableau structuré **au format JSON uniquement** avec les colonnes suivantes pour ce modèle :
+            - "Modèle" : Nom exact du produit (doit correspondre à '{psref_query}' ou être proche)
+            - "Mémoire" : Quantité et type de mémoire (ex: "16 Go DDR4")
+            - "Mémoire Modifiable" : "Oui" ou "Non" (si la mémoire peut être mise à jour)
+            - "Disque" : Taille et type de stockage (ex: "512 Go SSD")
+            - "Disque Modifiable" : "Oui" ou "Non" (si le disque peut être remplacé)
+            - "Options Modifiables" : Liste des autres options modifiables (ex: "Batterie, Wi-Fi")
+            - "Lien PSREF" : URL du PDF (utilise '{pdf_url}' si disponible)
+
+            Si une information est manquante, mets "Non spécifié". Si le modèle n'est pas trouvé, retourne une liste vide [].
+            """
+
         llm_response = get_llm_response(llm_prompt).strip()
         
         # Convertir la réponse JSON en DataFrame
@@ -186,13 +212,13 @@ def display_data_page():
             results_json = json.loads(llm_response)
             if isinstance(results_json, list) and results_json:
                 df_results = pd.DataFrame(results_json)
-                st.subheader(f"Résultats formatés pour '{psref_query}'")
+                st.subheader(f"Résultats formatés pour '{psref_query}' ({search_mode})")
                 st.dataframe(df_results)
                 st.write("Liens PSREF (cliquez pour ouvrir) :")
                 for index, row in df_results.iterrows():
                     st.link_button(f"Lien pour {row['Modèle']}", row["Lien PSREF"])
             else:
-                st.write(f"Aucune donnée trouvée pour '{psref_query}' dans le PDF. Réponse brute :", llm_response)
+                st.write(f"Aucune donnée trouvée pour '{psref_query}' dans le PDF ({search_mode}). Réponse brute :", llm_response)
         except json.JSONDecodeError as e:
             st.write(f"Erreur de formatage JSON : {e}. Réponse brute :", llm_response)
 
