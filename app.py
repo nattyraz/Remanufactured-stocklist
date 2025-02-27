@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import re  # For regular expression matching
 
-Constants for Admin Authentication
+#Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
 admin_password = st.secrets["general"]["ADMIN_PASSWORD"]
 
@@ -54,7 +54,7 @@ combined_data = advanced_filter_data_by_search_query(combined_data, search_query
 
 if combined_data is not None and not combined_data.empty:
 
-Rename columns
+#Rename columns
 rename_columns = {
 "Brand": "Brand",
 "Item Category Code": "Category",
@@ -91,7 +91,7 @@ filtered_data = combined_data[
 (combined_data["Avail. Qty"] > 0)
 ]
 
-Remove unwanted columns
+#Remove unwanted columns
 columns_to_remove = ["Kunde land", "Brand"]
 filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
 
@@ -100,7 +100,7 @@ columns_to_display.append(selected_currency)
 s = filtered_data[columns_to_display].style.format({selected_currency: lambda x : "{:.2f}".format(x)})
 st.dataframe(s)
 
-... (pre-existing code remains unchanged)
+#... (pre-existing code remains unchanged)
 def admin_page():
 st.sidebar.title("Administration")
 username = st.sidebar.text_input("Nom d'utilisateur", type="default")
