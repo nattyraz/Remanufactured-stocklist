@@ -84,7 +84,19 @@ def display_data_page():
     with col1:
         st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
     with col2:
-        st.title("Foxway stocklist")
+        # Préparer le titre et les stats dans un sous-conteneur
+        title_col, stats_col = st.columns([2, 1])
+        with title_col:
+            st.title("Foxway stocklist")
+        with stats_col:
+            combined_data = st.session_state.combined_data
+            if combined_data is not None and not combined_data.empty:
+                total_refs = len(combined_data)
+                st.write(f"Total références : {total_refs}")
+            else:
+                st.write("Total références : 0")
+            # Placeholder pour les refs filtrées, mis à jour plus tard
+            filtered_placeholder = st.empty()
 
     combined_data = st.session_state.combined_data
     last_update_date = st.session_state.last_update_date
@@ -98,6 +110,7 @@ def display_data_page():
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
+        # Rename columns
         rename_columns = {
             "Brand": "Brand",
             "Item Category Code": "Category",
@@ -121,19 +134,26 @@ def display_data_page():
         if "Condition" in combined_data.columns:
             filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
 
+        filtered_data = combined_data.copy()  # Travailler sur une copie pour préserver les stats
         for column, selected_values in filters.items():
             if selected_values:
-                combined_data = combined_data[combined_data[column].isin(selected_values)]
+                filtered_data = filtered_data[filtered_data[column].isin(selected_values)]
 
         currency_columns = ["Promo Price EUR", "Promo Price DKK", "Promo Price GBP"]
         selected_currency = st.selectbox("Select a currency:", currency_columns)
 
-        filtered_data = combined_data[
-            (combined_data[selected_currency].notna()) &
-            (combined_data[selected_currency] != 0) &
-            (combined_data["Avail. Qty"] > 0)
+        filtered_data = filtered_data[
+            (filtered_data[selected_currency].notna()) &
+            (filtered_data[selected_currency] != 0) &
+            (filtered_data["Avail. Qty"] > 0)
         ]
 
+        # Mettre à jour les stats filtrées dynamiquement
+        filtered_refs = len(filtered_data)
+        with stats_col:
+            filtered_placeholder.write(f"Références filtrées : {filtered_refs}")
+
+        # Remove unwanted columns
         columns_to_remove = ["Kunde land", "Brand"]
         filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
 
