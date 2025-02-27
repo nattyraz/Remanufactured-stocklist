@@ -17,19 +17,17 @@ st.set_page_config(
     layout="wide"
 )
 
-@st.cache_data
-def get_combined_data():
-    return {'data': None}
-
-@st.cache_data
-def get_last_update_date():
-    return {'date': None}
+# Initialize session state for data and last update
+if 'combined_data' not in st.session_state:
+    st.session_state.combined_data = None
+if 'last_update_date' not in st.session_state:
+    st.session_state.last_update_date = None
 
 def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ ]', query)
     for sub_query in sub_queries:
         if sub_query:
-            sub_query = sub_query.replace("*", ".*")  # Fixed from "" to "*"
+            sub_query = sub_query.replace("*", ".*")
             pattern = re.compile(sub_query, re.IGNORECASE)
             df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
@@ -41,15 +39,15 @@ def display_data_page():
     with col2:
         st.title("Foxway stocklist")
 
-    combined_data = get_combined_data()['data']
-    last_update_date = get_last_update_date()['date']
+    combined_data = st.session_state.combined_data
+    last_update_date = st.session_state.last_update_date
 
     if last_update_date:
         st.write(f"Last update: {last_update_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
     search_query = st.text_input("Search by description or No. (use the * in your searches):")
 
-    if search_query:
+    if search_query and combined_data is not None:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
     if combined_data is not None and not combined_data.empty:
@@ -109,10 +107,6 @@ def admin_page():
         return
 
     file1 = st.file_uploader("Importez le premier fichier:", type=["xlsx"])
-    #file2 = st.file_uploader("Importez le deuxième fichier:", type=["xlsx"])
-    #file3 = st.file_uploader("Importez le troisième fichier (optionnel):", type=["xlsx"])
-    #file4 = st.file_uploader("Importez le quatrième fichier (optionnel):", type=["xlsx"])
-
     files = [file for file in [file1] if file]
 
     if files:
@@ -122,8 +116,9 @@ def admin_page():
         st.success("The data has been updated successfully!")
         st.write("Prévisualisation des données combinées :")
         st.write(combined_data)
-        get_combined_data()['data'] = combined_data
-        get_last_update_date()['date'] = last_update_date
+        # Store in session state
+        st.session_state.combined_data = combined_data
+        st.session_state.last_update_date = last_update_date
 
 def main():
     st.sidebar.title("Navigation")
