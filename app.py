@@ -29,9 +29,9 @@ def advanced_filter_data_by_search_query(df, query):
     sub_queries = re.split(r'[ ]', query)
     for sub_query in sub_queries:
         if sub_query:
-            sub_query = sub_query.replace("", ".*")
+            sub_query = sub_query.replace("*", ".*")  # Fixed from "" to "*"
             pattern = re.compile(sub_query, re.IGNORECASE)
-            df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1))]
+            df = df[df.apply(lambda row: row.astype(str).str.contains(pattern).any(), axis=1)]
     return df
 
 def display_data_page():
