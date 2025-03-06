@@ -19,8 +19,8 @@ client = OpenAI(
 )
 
 # Chemin pour stocker les données persistantes
-DATA_FILE = "combined_data.parquet"  # Format Parquet pour efficacité
-META_FILE = "meta.json"  # Pour stocker la date de mise à jour
+DATA_FILE = "combined_data.parquet"
+META_FILE = "meta.json"
 
 def check_credentials(username, password):
     return username == admin_username and password == admin_password
@@ -124,7 +124,6 @@ def display_data_page():
     if search_query:
         combined_data = advanced_filter_data_by_search_query(combined_data, search_query)
 
-    # Filtres et affichage (inchangé sauf adaptations mineures)
     rename_columns = {
         "Brand": "Brand",
         "Item Category Code": "Category",
@@ -167,7 +166,6 @@ def display_data_page():
     s = filtered_data[columns_to_display].style.format({selected_currency: "{:.2f}"})
     st.dataframe(s)
 
-    # Section Lenovo PSREF (inchangée, pas pertinente pour les corrections demandées)
     st.subheader("Recherche intelligente Lenovo PSREF (avec PDF)")
     psref_query = st.text_input("Entre une référence Lenovo (ex: 'ThinkPad X1 Carbon' ou 'ThinkPad X1 Carbon avec 16 Go') :")
     search_mode = st.radio("Mode de recherche :", ["Focus sur le détail", "Général"], horizontal=True)
@@ -188,7 +186,8 @@ def display_data_page():
             st.write("Erreur lors de la recherche :", search_results["error"])
             pdf_text = "Aucune donnée récupérée."
 
-        llm_prompt = f"..."  # (Prompt inchangé, raccourci ici pour lisibilité)
+        # Prompt LLM simplifié ici pour lisibilité, utilise ton prompt original
+        llm_prompt = f"Analyse ce texte PDF pour '{psref_query}': {pdf_text}..."
         llm_response = get_llm_response(llm_prompt).strip()
         try:
             results_json = json.loads(llm_response)
@@ -196,31 +195,12 @@ def display_data_page():
                 df_results = pd.DataFrame(results_json)
                 st.subheader(f"Résultats formatés pour '{psref_query}' ({search_mode})")
                 st.dataframe(df_results)
-                st.write("Liens PSREF (cliquez pour ouvrir) :")
-                for index, row in df_results.iterrows():
-                    st.link_button(f"Lien pour {row['Modèle']}", row["Lien PSREF"])
             else:
-                st.write(f"Aucune donnée trouvée pour '{psref_query}' dans le PDF ({search_mode}). Réponse brute :", llm_response)
+                st.write(f"Aucune donnée trouvée pour '{psref_query}'.")
         except json.JSONDecodeError as e:
-            st.write(f"Erreur de formatage JSON : {e}. Réponse brute :", llm_response)
+            st.write(f"Erreur JSON : {e}. Réponse brute :", llm_response)
 
 def admin_page():
-    st.sidebar.title("Authentification Admin")
-    username = st.sidebar.text_input("Nom d'utilisateur", type="default")
-    password = st.sidebar.text_input("Mot de passe", type="password")
-    login_button = st.sidebar.button("Connexion")
-
-    if login_button:
-        if check_credentials(username, password):
-            st.session_state.is_admin = True
-            st.sidebar.success("Connexion réussie !")
-        else:
-            st.sidebar.warning("Identifiants incorrects.")
-
-    if not st.session_state.is_admin:
-        st.warning("Veuillez vous connecter en tant qu'administrateur.")
-        return
-
     st.title("Administration")
     file1 = st.file_uploader("Importez le fichier de stock :", type=["xlsx"])
     if file1:
@@ -235,6 +215,19 @@ def admin_page():
 
 def main():
     st.sidebar.title("Navigation")
+
+    # Formulaire de connexion dans la sidebar
+    st.sidebar.subheader("Authentification Admin")
+    username = st.sidebar.text_input("Nom d'utilisateur", key="username")
+    password = st.sidebar.text_input("Mot de passe", type="password", key="password")
+    if st.sidebar.button("Connexion"):
+        if check_credentials(username, password):
+            st.session_state.is_admin = True
+            st.sidebar.success("Connexion réussie !")
+        else:
+            st.sidebar.warning("Identifiants incorrects.")
+
+    # Menu de navigation
     if st.session_state.is_admin:
         page = st.sidebar.radio("Choisissez une page :", ["Affichage des données", "Administration"])
     else:
