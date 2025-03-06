@@ -8,7 +8,11 @@ import json
 import pdfplumber
 import os
 import io
-import xlsxwriter
+import openpyxl  # Utilisé pour l'export Excel
+import plotly.express as px  # Inclus mais non utilisé pour l'instant
+import matplotlib.pyplot as plt  # Inclus mais non utilisé pour l'instant
+import numpy as np  # Inclus mais non utilisé pour l'instant
+from geopy.geocoders import Nominatim  # Inclus mais non utilisé pour l'instant
 
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
@@ -168,19 +172,21 @@ def display_data_page():
     s = filtered_data[columns_to_display].style.format({selected_currency: "{:.2f}"})
     st.dataframe(s)
 
-    # Exportation en Excel
+    # Exportation en Excel avec openpyxl
     if not filtered_data.empty:
         excel_buffer = io.BytesIO()
-        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
             filtered_data[columns_to_display].to_excel(writer, index=False, sheet_name='Stock')
+            # Ajustement manuel des largeurs de colonnes avec openpyxl
             worksheet = writer.sheets['Stock']
-            for i, col in enumerate(columns_to_display):
-                max_len = max(
-                    filtered_data[col].astype(str).map(len).max(),
-                    len(col)
+            for i, column in enumerate(columns_to_display, 1):
+                max_length = max(
+                    filtered_data[column].astype(str).map(len).max(),
+                    len(column)
                 ) + 2
-                worksheet.set_column(i, i, max_len)
-        
+                col_letter = openpyxl.utils.get_column_letter(i)
+                worksheet.column_dimensions[col_letter].width = max_length
+
         st.download_button(
             label="Exporter en Excel",
             data=excel_buffer.getvalue(),
