@@ -7,6 +7,8 @@ import requests
 import json
 import pdfplumber
 import os
+import io
+import xlsxwriter
 
 # Constants for Admin Authentication
 admin_username = st.secrets["general"]["ADMIN_USERNAME"]
@@ -155,9 +157,9 @@ def display_data_page():
         (filtered_data["Avail. Qty"] > 0)
     ]
 
-    filtered_refs = len(filtered_data)
+    filtered_refs = filtered_data["Avail. Qty"].sum() if not filtered_data.empty else 0
     with stats_col:
-        filtered_placeholder.write(f"Références filtrées : {filtered_refs}")
+        filtered_placeholder.write(f"Quantité totale filtrée : {int(filtered_refs)}")
 
     columns_to_remove = ["Kunde land", "Brand"]
     filtered_data = filtered_data.drop(columns=columns_to_remove, errors='ignore')
@@ -165,6 +167,26 @@ def display_data_page():
     columns_to_display.append(selected_currency)
     s = filtered_data[columns_to_display].style.format({selected_currency: "{:.2f}"})
     st.dataframe(s)
+
+    # Exportation en Excel
+    if not filtered_data.empty:
+        excel_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+            filtered_data[columns_to_display].to_excel(writer, index=False, sheet_name='Stock')
+            worksheet = writer.sheets['Stock']
+            for i, col in enumerate(columns_to_display):
+                max_len = max(
+                    filtered_data[col].astype(str).map(len).max(),
+                    len(col)
+                ) + 2
+                worksheet.set_column(i, i, max_len)
+        
+        st.download_button(
+            label="Exporter en Excel",
+            data=excel_buffer.getvalue(),
+            file_name=f"stocklist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     st.subheader("Recherche intelligente Lenovo PSREF (avec PDF)")
     psref_query = st.text_input("Entre une référence Lenovo (ex: 'ThinkPad X1 Carbon' ou 'ThinkPad X1 Carbon avec 16 Go') :")
@@ -186,7 +208,6 @@ def display_data_page():
             st.write("Erreur lors de la recherche :", search_results["error"])
             pdf_text = "Aucune donnée récupérée."
 
-        # Prompt LLM simplifié ici pour lisibilité, utilise ton prompt original
         llm_prompt = f"Analyse ce texte PDF pour '{psref_query}': {pdf_text}..."
         llm_response = get_llm_response(llm_prompt).strip()
         try:
@@ -216,7 +237,6 @@ def admin_page():
 def main():
     st.sidebar.title("Navigation")
 
-    # Formulaire de connexion dans la sidebar
     st.sidebar.subheader("Authentification Admin")
     username = st.sidebar.text_input("Nom d'utilisateur", key="username")
     password = st.sidebar.text_input("Mot de passe", type="password", key="password")
@@ -227,7 +247,6 @@ def main():
         else:
             st.sidebar.warning("Identifiants incorrects.")
 
-    # Menu de navigation
     if st.session_state.is_admin:
         page = st.sidebar.radio("Choisissez une page :", ["Affichage des données", "Administration"])
     else:
