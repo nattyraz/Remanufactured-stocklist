@@ -1,14 +1,17 @@
-# [client]
-# show_menu="off"
+[general]
+ADMIN_USERNAME = "admin"  # Remplacez par votre nom d'utilisateur admin
+ADMIN_PASSWORD = "password"  # Remplacez par votre mot de passe admin
+
+[openrouter]
+API_KEY = "votre_clé_api_openrouter"  # Remplacez par votre clé API OpenRouter
+
+[serpapi]
+API_KEY = "votre_clé_api_serpapi"  # Remplacez par votre clé API SerpAPI
 
 [theme]
-base = "dark"
-primaryColor = "#E694FF"
-backgroundColor = "#420171"
-secondaryBackgroundColor = "#310452"
-textColor = "#DCDCDC"
+# Personnalisation du thème Streamlit
+primaryColor = "#007bff"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8f9fa"
+textColor = "#212529"
 font = "sans-serif"
-
-# [deprecation]
-# showfileUploaderEncoding = false
-

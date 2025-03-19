@@ -1,12 +1,25 @@
-streamlit
-pandas
-openpyxl
-plotly
-matplotlib
-numpy
-openai
-geopy
-requests
-serpapi
-pdfplumber
-pyarrow
+# Interface utilisateur
+streamlit>=1.10.0
+
+# Manipulation de données
+pandas>=1.5.0
+numpy>=1.21.0
+
+# Visualisation
+plotly>=5.5.0
+matplotlib>=3.5.0
+
+# Export de données
+openpyxl>=3.0.0
+pyarrow>=7.0.0
+
+# Intégration IA et APIs
+openai>=1.0.0
+requests>=2.28.0
+serpapi>=0.1.0
+
+# Traitement PDF
+pdfplumber>=0.7.0
+
+# Géolocalisation (préparé pour futures fonctionnalités)
+geopy>=2.2.0
