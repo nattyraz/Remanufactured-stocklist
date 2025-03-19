@@ -106,7 +106,7 @@ def get_llm_response(prompt):
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/static/rf.logo.png?raw=true", width=100)
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/static/rflogo.jpg?raw=true", width=100)
     with col2:
         title_col, stats_col = st.columns([2, 1])
         with title_col:

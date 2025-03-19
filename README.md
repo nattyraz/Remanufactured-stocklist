@@ -2,7 +2,7 @@
 
 Application de gestion de stock avec interface Streamlit, permettant de gérer et filtrer rapidement les stocks de produits remanufacturés.
 
-![Logo](static/rf.logo.png)
+![Logo](static/rflogo.jpg)
 
 ## 🚀 Fonctionnalités
 

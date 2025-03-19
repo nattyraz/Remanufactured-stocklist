@@ -20,7 +20,7 @@ class Pages:
         """Affiche l'en-tête de l'application."""
         col1, col2 = st.columns([1, 6])
         with col1:
-            st.image("static/rf.logo.png", width=100)
+            st.image("static/rflogo.jpg", width=100)
         with col2:
             title_col, stats_col = st.columns([2, 1])
             with title_col:
