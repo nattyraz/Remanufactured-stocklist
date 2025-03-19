@@ -1,8 +1,8 @@
-# Remanufactured Stocklist
+# Stockliste
 
-Application de gestion de stock Foxway avec interface Streamlit, permettant de gérer et filtrer rapidement les stocks de produits remanufacturés.
+Application de gestion de stock avec interface Streamlit, permettant de gérer et filtrer rapidement les stocks de produits remanufacturés.
 
-![Logo Foxway](logo%20foxway.png)
+![Logo](static/rf.logo.png)
 
 ## 🚀 Fonctionnalités
 

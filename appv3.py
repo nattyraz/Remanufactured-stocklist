@@ -52,7 +52,7 @@ def save_persistent_data(df, last_update_date):
 
 # Set page configuration
 st.set_page_config(
-    page_title="Remanufactured Stocklist",
+    page_title="Stockliste",
     page_icon="favicon.ico",
     layout="wide"
 )
@@ -106,11 +106,11 @@ def get_llm_response(prompt):
 def display_data_page():
     col1, col2 = st.columns([1, 6])
     with col1:
-        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/logo%20foxway.png?raw=true", width=100)
+        st.image("https://github.com/nattyraz/Remanufactured-stocklist/blob/main/static/rf.logo.png?raw=true", width=100)
     with col2:
         title_col, stats_col = st.columns([2, 1])
         with title_col:
-            st.title("Foxway stocklist")
+            st.title("Stockliste")
         with stats_col:
             combined_data = st.session_state.combined_data
             total_refs = len(combined_data) if combined_data is not None and not combined_data.empty else 0

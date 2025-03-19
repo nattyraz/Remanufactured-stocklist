@@ -2,7 +2,7 @@ import streamlit as st
 
 # Configuration de l'application
 APP_CONFIG = {
-    "page_title": "Remanufactured Stocklist",
+    "page_title": "Stockliste",
     "page_icon": None,
     "layout": "wide"
 }

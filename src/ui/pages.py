@@ -24,7 +24,7 @@ class Pages:
         with col2:
             title_col, stats_col = st.columns([2, 1])
             with title_col:
-                st.title("Remanufactured stocklist")
+                st.title("Stockliste")
             return stats_col
 
     @staticmethod
