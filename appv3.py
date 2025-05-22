@@ -140,13 +140,17 @@ def display_data_page():
     combined_data = combined_data.rename(columns=rename_columns)
 
     col_brand, col_category, col_size_format, col_keyboard, col_condition = st.columns(5)
-    filters = {
-        "Brand": col_brand.multiselect("Brand", list(combined_data["Brand"].unique())),
-        "Category": col_category.multiselect("Category", list(combined_data["Category"].unique())),
-        "Size/Format": col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique())),
-        "Keyboard": col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique())),
-        "Condition": col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
-    }
+    filters = {}
+    if "Brand" in combined_data.columns:
+        filters["Brand"] = col_brand.multiselect("Brand", list(combined_data["Brand"].unique()))
+    else:
+        col_brand.info("Brand filter not available (column missing).")
+
+    # Add other filters regardless of "Brand" column's presence
+    filters["Category"] = col_category.multiselect("Category", list(combined_data["Category"].unique()))
+    filters["Size/Format"] = col_size_format.multiselect("Size/Format", list(combined_data["Size/Format"].unique()))
+    filters["Keyboard"] = col_keyboard.multiselect("Keyboard", list(combined_data["Keyboard"].unique()))
+    filters["Condition"] = col_condition.multiselect("Condition", list(combined_data["Condition"].unique()))
 
     filtered_data = combined_data.copy()
     for column, selected_values in filters.items():
@@ -232,6 +236,8 @@ def admin_page():
     file1 = st.file_uploader("Importez le fichier de stock :", type=["xlsx"])
     if file1:
         data = pd.read_excel(file1)
+        if "Brand" not in data.columns:
+            st.warning("Warning: The uploaded file is missing the 'Brand' column. Related filters or data displays might be affected.")
         last_update_date = datetime.now()
         save_persistent_data(data, last_update_date)
         st.session_state.combined_data = data
