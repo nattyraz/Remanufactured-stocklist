@@ -110,7 +110,7 @@ def display_data_page():
     with col2:
         title_col, stats_col = st.columns([2, 1])
         with title_col:
-            st.title("Foxway stocklist")
+            st.title("Rofox stocklist")
         with stats_col:
             combined_data = st.session_state.combined_data
             total_refs = len(combined_data) if combined_data is not None and not combined_data.empty else 0
